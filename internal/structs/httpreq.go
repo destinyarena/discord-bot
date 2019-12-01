@@ -5,5 +5,5 @@ type ReqBody struct {
     EntityType string `json:"entity_type"`
     Type string `json:"type"`
     MaxAge int `json:"max_age"`
-    MaxUsers int `json:"max_users"`
+    MaxUses int `json:"max_uses"`
 }

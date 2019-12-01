@@ -59,8 +59,10 @@ func (r *Router) Handler(m *discordgo.MessageCreate) error {
         return nil
     }
 
-    g, _ := r.Session.State.Guild(c.GuildID)
-
+    g, err := r.Session.State.Guild(c.GuildID)
+    if err != nil {
+        return nil
+    }
 
     restr := `\` + r.Prefix + `([\w\d]+).*`
     re, err := regexp.Compile(restr)
@@ -69,7 +71,13 @@ func (r *Router) Handler(m *discordgo.MessageCreate) error {
         return err
     }
 
-    name := re.FindStringSubmatch(m.Content)[1]
+    contentslice := re.FindStringSubmatch(m.Content)
+
+    if len(contentslice) == 0 {
+        return nil
+    }
+
+    name := contentslice[1]
 
     if rt := r.Find(name); rt != nil {
         ctx := &Context{
