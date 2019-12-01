@@ -5,7 +5,6 @@ import (
     "strings"
     "errors"
     "regexp"
-    "fmt"
 )
 
 
@@ -73,7 +72,6 @@ func (r *Router) Handler(m *discordgo.MessageCreate) error {
     name := re.FindStringSubmatch(m.Content)[1]
 
     if rt := r.Find(name); rt != nil {
-        fmt.Println("Name was found")
         ctx := &Context{
             m.Message,
             c,

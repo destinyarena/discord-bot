@@ -16,12 +16,8 @@ type (
     Discord struct {
         Prefix string
         Token string
-        Roles *Roles
-    }
-
-    Roles struct {
-        Div1 int
-        Div2 int
-        Div3 int
+        Div1 string
+        Div2 string
+        Div3 string
     }
 )

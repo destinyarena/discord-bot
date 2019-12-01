@@ -1,10 +1,9 @@
 package main
 
 import (
-    //"github.com/arturoguerra/d2arena/internal/structs"
     "github.com/arturoguerra/d2arena/internal/router"
     "github.com/arturoguerra/d2arena/internal/handlers"
-    //"github.com/arturoguerra/d2arena/internal/config"
+    "github.com/arturoguerra/d2arena/internal/config"
     "github.com/arturoguerra/d2arena/internal/commands"
     "github.com/bwmarrin/discordgo"
     "fmt"
@@ -14,13 +13,11 @@ import (
 )
 
 
-func init() {
-}
-
 func main() {
+    dcfg := config.LoadDiscord()
     cfg := router.NewConfig(
-        "",
-        "",
+        dcfg.Prefix,
+        dcfg.Token,
     )
 
     dgo, err := discordgo.New("Bot " + cfg.Token)

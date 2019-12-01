@@ -3,6 +3,7 @@ package commands
 import (
     "github.com/arturoguerra/d2arena/internal/router"
     "github.com/arturoguerra/d2arena/internal/structs"
+    "github.com/arturoguerra/d2arena/internal/config"
     "bytes"
     "encoding/json"
     "net/http"
@@ -55,9 +56,11 @@ func GenerateLink(hub int) (string, error) {
 
     client := &http.Client{}
 
+    fitcfg := config.LoadFaceit()
+
     req, _ := http.NewRequest("POST", "https://api.faceit.com/invitations/v1/invite", bytes.NewBuffer(reqBody))
     req.Header.Set("Content-Type", "application/json")
-    req.Header.Set("Authorization", "Bearer ") //+ faceitcfg.UserToken)
+    req.Header.Set("Authorization", "Bearer " + fitcfg.UserToken)
 
     resp, err := client.Do(req)
     defer resp.Body.Close()
@@ -66,12 +69,17 @@ func GenerateLink(hub int) (string, error) {
         return "", err
     }
 
-    link, err := ioutil.ReadAll(resp.Body)
+    rawbody, err := ioutil.ReadAll(resp.Body)
     if err != nil {
         return "", err
     }
 
-    return string(link), nil
+    var body structs.ResponseBody
+    json.Unmarshal([]byte(rawbody), &body)
+
+    link := "https://www.faceit.com/en/inv/" + body.Payload.Code
+
+    return link, nil
 }
 
 func getLink(hub int) func(ctx *router.Context) {
