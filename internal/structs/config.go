@@ -1,7 +1,8 @@
 package structs
 
+// Configuration
+
 type (
-    // Configuration
     Config struct {
         Faceit *Faceit
         Discord *Discord
@@ -23,4 +24,4 @@ type (
         Div2 int
         Div3 int
     }
-}
+)

@@ -1,7 +1,6 @@
 package router
 
 import (
-    "github.com/arturoguerra/bossman/internal/structs"
     "github.com/bwmarrin/discordgo"
     "strings"
     "errors"
@@ -44,7 +43,7 @@ func (rt *Route) Match(name string) bool {
 }
 
 // Router Methods
-func New(s *discordgo.Session, c *structs.Config) *Router {
+func New(s *discordgo.Session, c *Config) *Router {
     return &Router{
         Session: s,
         Prefix: c.Prefix,
@@ -61,10 +60,7 @@ func (r *Router) Handler(m *discordgo.MessageCreate) error {
         return nil
     }
 
-    g, err := r.Session.State.Guild(c.GuildID)
-    if err != nil {
-        return nil
-    }
+    g, _ := r.Session.State.Guild(c.GuildID)
 
 
     restr := `\` + r.Prefix + `([\w\d]+).*`
