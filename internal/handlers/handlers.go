@@ -7,7 +7,7 @@ import (
 
 
 func OnReady(s *discordgo.Session, event *discordgo.Ready) {
-    s.UpdateStatus(0, "OJ Security")
+    //s.UpdateStatus(0, "OJ Security")
 
     fmt.Printf("%s#%s", event.User.Username, event.User.Discriminator)
 }
