@@ -39,9 +39,9 @@ func GenerateLink(hub int) (string, error) {
 
     switch hub {
         case hubs.DIV1:
-            hubid = "DIV1"
+            hubid = "0ced849e-e10b-4998-8780-d85c60135f9d"
         case hubs.DIV2:
-            hubid = "DIV2"
+            hubid = "cf70962d-756f-4c54-9492-7cc06b33d685"
         case hubs.DIV3:
             hubid = "484d1f7e-ad44-417e-b1c8-4a10c1159808"
     }
