@@ -34,8 +34,9 @@ func main() {
 
     commands.New(r)
 
-    dgo.AddHandler(func (_ *discordgo.Session, m *discordgo.MessageCreate) {
+    dgo.AddHandler(func (s *discordgo.Session, m *discordgo.MessageCreate) {
         r.Handler(m)
+        handlers.OnMessage(s, m)
     })
 
     dgo.AddHandler(handlers.OnReady)

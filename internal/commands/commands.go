@@ -14,6 +14,8 @@ type HUBS struct {
     DIV1 int
     DIV2 int
     DIV3 int
+    DUEL int
+    STADIUM int
 }
 
 
@@ -24,6 +26,8 @@ func init() {
         0,
         1,
         2,
+        3,
+        4,
     }
 }
 
@@ -31,6 +35,8 @@ func New(r *router.Router) {
     r.On("div1", getLink(hubs.DIV1))
     r.On("div2", getLink(hubs.DIV2))
     r.On("div3", getLink(hubs.DIV3))
+    r.On("divd", getLink(hubs.DUEL))
+    r.On("divs", getLink(hubs.STADIUM))
 }
 
 
@@ -44,6 +50,10 @@ func GenerateLink(hub int) (string, error) {
             hubid = "cf70962d-756f-4c54-9492-7cc06b33d685"
         case hubs.DIV3:
             hubid = "484d1f7e-ad44-417e-b1c8-4a10c1159808"
+        case hubs.DUEL:
+            hubid = ""
+        case hubs.STADIUM:
+            hubid = ""
     }
 
     reqBody, _ := json.Marshal(structs.ReqBody{
@@ -84,6 +94,10 @@ func GenerateLink(hub int) (string, error) {
 
 func getLink(hub int) func(ctx *router.Context) {
     return func (ctx *router.Context) {
+        if ctx.Channel.ID != "650159281575821312" {
+            return
+        }
+
         link, err := GenerateLink(hub)
         if err != nil {
             return
