@@ -5,6 +5,7 @@ import (
     "github.com/arturoguerra/d2arena/internal/handlers"
     "github.com/arturoguerra/d2arena/internal/config"
     "github.com/arturoguerra/d2arena/internal/commands"
+    "github.com/arturoguerra/d2arena/internal/background"
     "github.com/bwmarrin/discordgo"
     "fmt"
     "os"
@@ -12,6 +13,11 @@ import (
     "syscall"
 )
 
+func lolkillme() {
+    for true {
+        fmt.Println("HELLO ITS ME")
+    }
+}
 
 func main() {
     dcfg := config.LoadDiscord()
@@ -27,6 +33,7 @@ func main() {
         return
     }
 
+
     r:= router.New(
         dgo,
         cfg,
@@ -36,10 +43,13 @@ func main() {
 
     dgo.AddHandler(func (s *discordgo.Session, m *discordgo.MessageCreate) {
         r.Handler(m)
-        handlers.OnMessage(s, m)
+        //handlers.OnMessage(s, m)
     })
 
     dgo.AddHandler(handlers.OnReady)
+    dgo.AddHandler(handlers.OnMemberJoin)
+
+    go background.UpdateRoles(dgo)
 
     err = dgo.Open()
     if err != nil {
