@@ -43,7 +43,7 @@ func main() {
 
     dgo.AddHandler(func (s *discordgo.Session, m *discordgo.MessageCreate) {
         r.Handler(m)
-        //handlers.OnMessage(s, m)
+        handlers.OnMessage(s, m)
     })
 
     dgo.AddHandler(handlers.OnReady)
