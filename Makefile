@@ -3,7 +3,7 @@
 GORUN = go run
 GOBUILD = go build
 
-all: clean build
+all: build
 
 clean:
 	rm -rf bin

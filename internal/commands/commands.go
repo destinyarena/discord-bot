@@ -49,11 +49,11 @@ func GenerateLink(hub int) (string, error) {
         case hubs.DIV2:
             hubid = "cf70962d-756f-4c54-9492-7cc06b33d685"
         case hubs.DIV3:
-            hubid = "484d1f7e-ad44-417e-b1c8-4a10c1159808"
+            hubid = "e615de71-bea1-4d5b-9e0e-d14f410164d4"
         case hubs.DUEL:
-            hubid = ""
+            hubid = "ea3a5dbe-e85f-4ebe-9c56-062e1a3160f2"
         case hubs.STADIUM:
-            hubid = ""
+            hubid = "2133e0f1-523a-41ae-a41a-1686f0ba1528"
     }
 
     reqBody, _ := json.Marshal(structs.ReqBody{
