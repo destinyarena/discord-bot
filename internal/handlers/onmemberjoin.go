@@ -23,6 +23,7 @@ func OnMemberJoin(s *discordgo.Session, m *discordgo.GuildMemberAdd) {
             return
         }
 
-        s.ChannelMessageSend(dmchannel.ID, "Sorry your account must be older than 7 days to join, if you believe this is an error please contact an admin.")
+        //s.ChannelMessageSend(dmchannel.ID, "Sorry your account must be older than 7 days to join, if you believe this is an error please contact an admin.")
+        s.ChannelMessageSend(dmchannel.ID, "SORRY YOUR ACCOUNT MUST BE OLDER THAN 7 DAYS TO JOIN, IF YOU BELIEVE THIS IS AN ERROR PLEASE CONTACT AN ADMIN.")
     }
 }
