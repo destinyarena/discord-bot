@@ -1,0 +1,17 @@
+[Unit]
+Description=Destiny 2 Arena Bot
+After=network.target
+
+[Service]
+Type=simple
+Restart=on-failure
+Environment="DTOKEN="
+Environment="PREFIX="
+Environment="DJOINROLEID="
+Environment="FACEIT_USER_TOKEN="
+Environment="FACEIT_API_TOKEN="
+WorkingDirectory=/usr/bin
+ExecStart=/usr/bin/d2arena
+
+[Install]
+WantedBy=multi-user.target
