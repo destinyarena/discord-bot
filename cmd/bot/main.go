@@ -6,11 +6,16 @@ import (
     "github.com/arturoguerra/d2arena/internal/config"
     "github.com/arturoguerra/d2arena/internal/commands"
     "github.com/arturoguerra/d2arena/internal/background"
+    "github.com/arturoguerra/d2arena/internal/api"
     "github.com/bwmarrin/discordgo"
     "fmt"
     "os"
+    "github.com/labstack/echo"
     "os/signal"
     "syscall"
+    "net/http"
+    "context"
+    "time"
 )
 
 func lolkillme() {
@@ -57,9 +62,26 @@ func main() {
         return
     }
 
+    e := echo.New()
+
+    api.New(e, dgo)
+
+    go func() {
+        if err := e.Start(":8080"); err != nil {
+            e.Logger.Info("Shutting down the server!")
+        }
+    }()
+
+
     sc := make(chan os.Signal, 1)
     signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt, os.Kill)
     <- sc
 
     dgo.Close()
+
+    ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+    defer cancel()
+    if err := e.Shutdown(ctx); err != nil {
+        e.Logger.Fatal(err)
+    }
 }
