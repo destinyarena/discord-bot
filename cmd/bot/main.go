@@ -13,7 +13,6 @@ import (
     "github.com/labstack/echo"
     "os/signal"
     "syscall"
-    "net/http"
     "context"
     "time"
 )

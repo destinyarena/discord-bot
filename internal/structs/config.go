@@ -17,5 +17,11 @@ type (
         Prefix string
         Token string
         JoinRoleID string
+        GuildID string
+        Div1 string
+        Div2 string
+        Div3 string
+        DivD string
+        DivS string
     }
 )

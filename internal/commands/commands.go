@@ -32,11 +32,12 @@ func init() {
 }
 
 func New(r *router.Router) {
-    r.On("div1", getLink(hubs.DIV1))
-    r.On("div2", getLink(hubs.DIV2))
-    r.On("div3", getLink(hubs.DIV3))
-    r.On("divd", getLink(hubs.DUEL))
-    r.On("divs", getLink(hubs.STADIUM))
+    //r.On("div1", getLink(hubs.DIV1))
+    //r.On("div2", getLink(hubs.DIV2))
+    //r.On("div3", getLink(hubs.DIV3))
+    r.On("public", getLink(hubs.DIV3))
+    //r.On("divd", getLink(hubs.DUEL))
+    //r.On("divs", getLink(hubs.STADIUM))
 }
 
 

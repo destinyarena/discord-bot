@@ -7,3 +7,8 @@ type ReqBody struct {
     MaxAge int `json:"max_age"`
     MaxUses int `json:"max_uses"`
 }
+
+type RolesPayload struct {
+    Discord string `json:"discord"`
+    Skillvl int `json:"skillvl"`
+}
