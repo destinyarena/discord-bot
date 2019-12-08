@@ -10,5 +10,5 @@ type ReqBody struct {
 
 type RolesPayload struct {
     Discord string `json:"discord"`
-    Skillvl int `json:"skillvl"`
+    Skillvl string `json:"skillvl"`
 }
