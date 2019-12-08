@@ -10,6 +10,7 @@ import (
     "encoding/json"
     "io/ioutil"
     "fmt"
+    "strconv"
 )
 
 type HUBS struct {
@@ -104,19 +105,26 @@ func New(e *echo.Echo, s *discordgo.Session) {
     e.POST("/roles", rolesFunc(s));
 }
 
+
+func phpHotFix(id string) int {
+    n, _ := strconv.Atoi(id)
+    return n
+}
+
 func updateRoles(s *discordgo.Session, gid string, p *structs.RolesPayload, cfg *structs.Discord) {
-    if p.Skillvl >= 8 {
+    lvl := phpHotFix(p.Skillvl)
+    if lvl >= 8 {
         sendLink(s, hubs.DIV1, p.Discord)
         s.GuildMemberRoleAdd(gid, p.Discord, cfg.Div1)
 
     }
 
-    if p.Skillvl >= 4 {
+    if lvl >= 4 {
         sendLink(s, hubs.DIV2, p.Discord)
         s.GuildMemberRoleAdd(gid, p.Discord, cfg.Div2)
     }
 
-    if 3 >= p.Skillvl {
+    if 3 >= lvl {
         sendLink(s, hubs.DIV3, p.Discord)
         s.GuildMemberRoleAdd(gid, p.Discord, cfg.Div3)
     }
