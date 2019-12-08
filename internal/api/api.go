@@ -126,7 +126,11 @@ func rolesFunc(s *discordgo.Session) echo.HandlerFunc {
     discord := config.LoadDiscord()
     authtoken := config.LoadAuth()
     return func(c echo.Context) error {
-        auth := c.Request().Header.Get("authentication")
+        if authtoken == "" {
+            return c.String(500, "Missing token")
+        }
+
+        auth := c.Request().Header.Get("authorization")
         if auth != "Basic " + authtoken {
             return c.String(401, "Invalid Token")
         }
