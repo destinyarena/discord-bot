@@ -124,7 +124,13 @@ func updateRoles(s *discordgo.Session, gid string, p *structs.RolesPayload, cfg 
 
 func rolesFunc(s *discordgo.Session) echo.HandlerFunc {
     discord := config.LoadDiscord()
+    authtoken := config.LoadAuth()
     return func(c echo.Context) error {
+        auth := c.Request().Header.Get("authentication")
+        if auth != "Basic " + authtoken {
+            return c.String(401, "Invalid Token")
+        }
+
         g, err := s.Guild(discord.GuildID)
         if err != nil {
             fmt.Println(err)
