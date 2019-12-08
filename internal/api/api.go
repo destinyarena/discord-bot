@@ -130,10 +130,12 @@ func rolesFunc(s *discordgo.Session) echo.HandlerFunc {
             return c.String(500, "Missing token")
         }
 
-        auth := c.Request().Header.Get("authorization")
+        auth := c.Request().Header.Get("Authorization")
         if auth != "Basic " + authtoken {
             return c.String(401, "Invalid Token")
         }
+
+        fmt.Println("Front-end authenticated")
 
         g, err := s.Guild(discord.GuildID)
         if err != nil {
@@ -143,9 +145,13 @@ func rolesFunc(s *discordgo.Session) echo.HandlerFunc {
 
         payload := new(structs.RolesPayload)
 
+
         if err := c.Bind(payload); err != nil {
             return c.String(http.StatusBadRequest, "Error invalid payload")
         }
+
+        fmt.Println(payload)
+
 
         updateRoles(s, g.ID, payload, discord)
         return c.String(http.StatusOK, "Roles have been assigned")
