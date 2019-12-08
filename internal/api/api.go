@@ -6,43 +6,47 @@ import (
     "github.com/arturoguerra/d2arena/internal/config"
     "github.com/arturoguerra/d2arena/internal/structs"
     "net/http"
+    "fmt"
 )
 
 func New(e *echo.Echo, s *discordgo.Session) {
     e.POST("/roles", rolesFunc(s));
 }
 
-func updateRoles(s *discordgo.Session, gid string, p *structs.RolesPayload, cfg *structs.Discord) error {
-    var err error;
+func updateRoles(s *discordgo.Session, gid string, p *structs.RolesPayload, cfg *structs.Discord) {
     if p.Skillvl >= 8 {
-        err = s.GuildMemberRoleAdd(gid, p.Discord, cfg.Div1);
+        s.GuildMemberRoleAdd(gid, p.Discord, cfg.Div1)
     }
 
     if p.Skillvl >= 4 {
-        err = s.GuildMemberRoleAdd(gid, p.Discord, cfg.Div2);
+        s.GuildMemberRoleAdd(gid, p.Discord, cfg.Div2)
     }
 
     if 3 >= p.Skillvl {
-        err = s.GuildMemberRoleAdd(gid, p.Discord, cfg.Div3);
+        s.GuildMemberRoleAdd(gid, p.Discord, cfg.Div3)
     }
+}
 
-    return err;
+func test(s string) {
+    fmt.Println(s);
 }
 
 func rolesFunc(s *discordgo.Session) echo.HandlerFunc {
-    discord := config.LoadDiscord();
+    discord := config.LoadDiscord()
     return func(c echo.Context) error {
-        g, _ := s.Guild(discord.GuildID);
-        payload := new(structs.RolesPayload);
+        g, err := s.Guild(discord.GuildID)
+        if err != nil {
+            fmt.Println(err)
+            return c.String(500, "Well shit we fucked up")
+        }
+
+        payload := new(structs.RolesPayload)
 
         if err := c.Bind(payload); err != nil {
-            return c.String(http.StatusBadRequest, "Error invalid payload");
+            return c.String(http.StatusBadRequest, "Error invalid payload")
         }
 
-        if err := updateRoles(s, g.ID, payload, discord); err != nil {
-            return c.String(http.StatusUnauthorized, "Error unauthorized payload");
-        } else {
-            return c.String(http.StatusOK, "Roles have been assigned");
-        }
+        updateRoles(s, g.ID, payload, discord)
+        return c.String(http.StatusOK, "Roles have been assigned")
     }
 }
