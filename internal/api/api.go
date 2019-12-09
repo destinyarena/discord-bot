@@ -24,6 +24,10 @@ type HUBS struct {
 
 var hubs *HUBS
 
+var DIV1LVL int;
+var DIV2LVL int;
+var DIV3LVL int;
+
 func init() {
     hubs = &HUBS{
         0,
@@ -32,6 +36,10 @@ func init() {
         3,
         4,
     }
+
+    DIV1LVL = 8;
+    DIV2LVL = 4;
+    DIV3LVL = 0;
 }
 
 func GenerateLink(hub int) (string, error) {
@@ -113,18 +121,18 @@ func phpHotFix(id string) int {
 
 func updateRoles(s *discordgo.Session, gid string, p *structs.RolesPayload, cfg *structs.Discord) {
     lvl := phpHotFix(p.Skillvl)
-    if lvl >= 8 {
+    if lvl >= DIV1LVL {
         sendLink(s, hubs.DIV1, p.Discord)
         s.GuildMemberRoleAdd(gid, p.Discord, cfg.Div1)
 
     }
 
-    if lvl >= 4 {
+    if lvl >= DIV2LVL {
         sendLink(s, hubs.DIV2, p.Discord)
         s.GuildMemberRoleAdd(gid, p.Discord, cfg.Div2)
     }
 
-    if 3 >= lvl {
+    if lvl >= DIV3LVL {
         sendLink(s, hubs.DIV3, p.Discord)
         s.GuildMemberRoleAdd(gid, p.Discord, cfg.Div3)
     }
