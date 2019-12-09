@@ -1,12 +1,12 @@
-FROM golang:1.13-buster AS builder
+FROM golang:1.13-alipne AS builder
 
 WORKDIR /build
 COPY . .
-RUN apt update && apt install -y build-essential
+RUN apk add --update make
 RUN make build
 
-FROM scratch
+FROM alpine:latest
 WORKDIR /app
-COPY --from=builder /build/bin/* /app
+COPY --from=builder /build/bin/d2arena /app
 
 CMD ["./d2arena"]
