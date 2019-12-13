@@ -105,7 +105,11 @@ func sendLink(s *discordgo.Session, hub int, uid string) {
         return
     }
 
-    s.ChannelMessageSend(channel.ID, link)
+    if _, err := s.ChannelMessageSend(channel.ID, link); err != nil {
+        fmt.Println("Error sending invite to :" + uid)
+    } else {
+        fmt.Println("Sending " + link + " to " + uid)
+    }
 }
 
 
