@@ -16,8 +16,6 @@ type Profile struct {
 }
 
 func fetchProfile(id string) (*Profile, error) {
-    profile := new(Profile)
-
     base := "https://destinyarena.fireteamsupport.net/infoexchange.php?key=2YHSbPt5GJ9Uupgk&d=true&discordid=" + id
     fmt.Println(base)
     req, _ := http.NewRequest("GET", base, nil)
@@ -37,5 +35,5 @@ func fetchProfile(id string) (*Profile, error) {
         return nil, err
     }
 
-    return profile, nil
+    return &body, nil
 }
