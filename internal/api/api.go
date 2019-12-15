@@ -107,9 +107,8 @@ func rolesFunc(s *discordgo.Session) echo.HandlerFunc {
 
         v := validator.New()
 
-        if err := v.Struct(payload); err != nil {
-            return c.String(http.StatusBadRequest, "Error invalid payload")
-        }
+        err := v.Struct(payload)
+        fmt.Println(err)
 
         fmt.Println(payload)
 
