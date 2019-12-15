@@ -64,6 +64,9 @@ func FaceitBan (id string, reason string) {
         resp, err := requests.Api.Do(req)
         defer resp.Body.Close()
 
+        rawbody, _ := ioutil.ReadAll(resp.Body)
+        fmt.Println(string(rawbody))
+
         if err != nil {
             fmt.Println("Error banning user from faceit")
             return

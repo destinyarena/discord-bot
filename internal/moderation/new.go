@@ -20,8 +20,11 @@ type (
 
 func (adt *AddHeaderTransport) RoundTrip(req *http.Request) (*http.Response, error) {
     for k, v := range adt.HeaderMap {
+        fmt.Println("Adding header: " + k + ":" + v)
         req.Header.Add(k, v)
     }
+
+    req.Header.Add("Content-Type", "application/json")
 
     return adt.T.RoundTrip(req)
 }
@@ -33,8 +36,8 @@ func NewAddHeaderTransport(headers map[string]string) *AddHeaderTransport {
 
 var requests Requests
 var StaffChannelID string
-func init() {
 
+func init() {
     StaffChannelID = "655803628644335661"
     faceit := config.LoadFaceit()
     api := &http.Client{Transport: NewAddHeaderTransport(map[string]string{"Authorization": "Bearer " + faceit.ApiToken})}
