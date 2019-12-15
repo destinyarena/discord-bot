@@ -8,7 +8,7 @@ import (
     "errors"
     "encoding/json"
     "bytes"
-    "io/ioutil"
+//    "io/ioutil"
     "net/http"
 )
 
@@ -77,10 +77,6 @@ func FaceitBan (id string, reason string) []error {
         req.Header.Add("Content-Type", "application/json")
         resp, err := requests.Client.Do(req)
         defer resp.Body.Close()
-
-        rawbody, _ := ioutil.ReadAll(resp.Body)
-        fmt.Println(string(rawbody))
-        fmt.Println(resp.StatusCode)
 
         if err != nil || resp.StatusCode != 200 {
             fmt.Println("Error banning user from faceit")
