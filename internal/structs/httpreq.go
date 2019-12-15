@@ -9,6 +9,7 @@ type ReqBody struct {
 }
 
 type RolesPayload struct {
-    Discord string `json:"discord"`
-    Skillvl string `json:"skillvl"`
+    Discord string `json:"discord" validate:"required"`
+    Skillvl string `json:"skillvl" valudate:"required"`
+    Faceit string `json:"faceit" validate:"required"`
 }

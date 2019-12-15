@@ -1,6 +1,7 @@
 package api
 
 import (
+    "gopkg.in/go-playground/validator.v9"
     "github.com/bwmarrin/discordgo"
     "github.com/labstack/echo"
     "github.com/arturoguerra/d2arena/internal/config"
@@ -10,54 +11,9 @@ import (
     "encoding/json"
     "io/ioutil"
     "fmt"
-    "strconv"
 )
 
-type HUBS struct {
-    DIV1 int
-    DIV2 int
-    DIV3 int
-    DUEL int
-    STADIUM int
-}
-
-
-var hubs *HUBS
-
-var DIV1LVL int;
-var DIV2LVL int;
-var DIV3LVL int;
-
-func init() {
-    hubs = &HUBS{
-        0,
-        1,
-        2,
-        3,
-        4,
-    }
-
-    DIV1LVL = 8;
-    DIV2LVL = 4;
-    DIV3LVL = 0;
-}
-
-func GenerateLink(hub int) (string, error) {
-    var hubid string
-
-    switch hub {
-        case hubs.DIV1:
-            hubid = "0ced849e-e10b-4998-8780-d85c60135f9d"
-        case hubs.DIV2:
-            hubid = "cf70962d-756f-4c54-9492-7cc06b33d685"
-        case hubs.DIV3:
-            hubid = "e615de71-bea1-4d5b-9e0e-d14f410164d4"
-        case hubs.DUEL:
-            hubid = "ea3a5dbe-e85f-4ebe-9c56-062e1a3160f2"
-        case hubs.STADIUM:
-            hubid = "2133e0f1-523a-41ae-a41a-1686f0ba1528"
-    }
-
+func GenerateLink(hubid string) (string, error) {
     reqBody, _ := json.Marshal(structs.ReqBody{
         hubid,
         "hub",
@@ -94,8 +50,8 @@ func GenerateLink(hub int) (string, error) {
     return link, nil
 }
 
-func sendLink(s *discordgo.Session, hub int, uid string) {
-    link, err := GenerateLink(hub)
+func sendLink(s *discordgo.Session, hubid string, uid string) {
+    link, err := GenerateLink(hubid)
     if err != nil {
         return
     }
@@ -118,28 +74,9 @@ func New(e *echo.Echo, s *discordgo.Session) {
 }
 
 
-func phpHotFix(id string) int {
-    n, _ := strconv.Atoi(id)
-    return n
-}
-
 func updateRoles(s *discordgo.Session, gid string, p *structs.RolesPayload, cfg *structs.Discord) {
-    lvl := phpHotFix(p.Skillvl)
-    if lvl >= DIV1LVL {
-        sendLink(s, hubs.DIV1, p.Discord)
-        s.GuildMemberRoleAdd(gid, p.Discord, cfg.Div1)
-
-    }
-
-    if lvl >= DIV2LVL {
-        sendLink(s, hubs.DIV2, p.Discord)
-        s.GuildMemberRoleAdd(gid, p.Discord, cfg.Div2)
-    }
-
-    if lvl >= DIV3LVL {
-        sendLink(s, hubs.DIV3, p.Discord)
-        s.GuildMemberRoleAdd(gid, p.Discord, cfg.Div3)
-    }
+        //sendLink(s, hubs.DIV1, p.Discord)
+        //s.GuildMemberRoleAdd(gid, p.Discord, cfg.Div1)
 }
 
 func rolesFunc(s *discordgo.Session) echo.HandlerFunc {
@@ -164,9 +101,13 @@ func rolesFunc(s *discordgo.Session) echo.HandlerFunc {
         }
 
         payload := new(structs.RolesPayload)
-
-
         if err := c.Bind(payload); err != nil {
+            return c.String(http.StatusBadRequest, "Error invalid payload")
+        }
+
+        v := validator.New()
+
+        if err := v.Struct(payload); err != nil {
             return c.String(http.StatusBadRequest, "Error invalid payload")
         }
 
