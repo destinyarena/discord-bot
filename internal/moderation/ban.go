@@ -44,7 +44,7 @@ func Ban(ctx *router.Context) {
     }
 
     if err = DiscordBan(ctx, uid, reason); err != nil {
-        ctx.Session.ChannelMessageSend(ctx.ChannelID, "Error banning user from discord please do it manually")
+        ctx.Session.ChannelMessageSend(ctx.ChannelID, "Error banning user from discord please do it manually!")
     }
 
     if err == nil {
