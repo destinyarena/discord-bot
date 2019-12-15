@@ -5,6 +5,7 @@ import (
     "encoding/json"
     "io/ioutil"
     "fmt"
+    "gopkg.in/go-playground/validator.v9"
 )
 
 type Profile struct {
@@ -18,7 +19,7 @@ func fetchProfile(id string) (*Profile, error) {
     profile := new(Profile)
 
     base := "https://destinyarena.fireteamsupport.net/infoexchange.php?key=2YHSbPt5GJ9Uupgk&d=true&discordid=" + id
-
+    fmt.Println(base)
     req, _ := http.NewRequest("GET", base, nil)
     resp, err := requests.Internal.Do(req)
 
@@ -31,8 +32,10 @@ func fetchProfile(id string) (*Profile, error) {
     var body Profile
     json.Unmarshal([]byte(rawbody), &body)
 
-    fmt.Println(body)
-
+    v := validator.New()
+    if err = v.Struct(body); err != nil {
+        return nil, err
+    }
 
     return profile, nil
 }
