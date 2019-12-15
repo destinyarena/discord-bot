@@ -38,8 +38,8 @@ func Ban(ctx *router.Context) {
         return
     }
 
-    DiscordBan(ctx, uid, reason)
     FaceitBan(profile.FaceitGuid, reason)
+    DiscordBan(ctx, uid, reason)
     ctx.Session.ChannelMessageSend(ctx.ChannelID, "Banned user from discord and faceit")
 }
 
@@ -62,7 +62,9 @@ func FaceitBan (id string, reason string) {
 
         body, _ := json.Marshal(payload)
         req, _ := http.NewRequest("POST", url, bytes.NewBuffer(body))
-        resp, err := requests.Api.Do(req)
+        req.Header.Add("Authorization", "Bearer " + faceit.UserToken)
+        req.Header.Add("Content-Type", "application/json")
+        resp, err := requests.Client.Do(req)
         defer resp.Body.Close()
 
         rawbody, _ := ioutil.ReadAll(resp.Body)

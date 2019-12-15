@@ -2,14 +2,14 @@ package moderation
 
 import (
     "github.com/arturoguerra/d2arena/internal/router"
-    "github.com/arturoguerra/d2arena/internal/config"
+//    "github.com/arturoguerra/d2arena/internal/config"
     "net/http"
     "fmt"
 )
 
 type (
     Requests struct {
-       Api *http.Client
+       Client *http.Client
        Internal *http.Client
     }
 
@@ -40,12 +40,12 @@ var StaffChannelID string
 
 func init() {
     StaffChannelID = "655803628644335661"
-    faceit := config.LoadFaceit()
-    api := &http.Client{Transport: NewAddHeaderTransport(map[string]string{"Authorization": "Bearer " + faceit.ApiToken})}
+    //faceit := config.LoadFaceit()
+    client := &http.Client{}
     internal := &http.Client{}
 
     requests = Requests{
-        api,
+        client,
         internal,
     }
 }

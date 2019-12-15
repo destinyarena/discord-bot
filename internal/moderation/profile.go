@@ -25,5 +25,5 @@ func getProfile(ctx *router.Context) {
 }
 
 func generateProfile (ctx *router.Context, profile *Profile) string {
-    return "Faceit Name: " + profile.FaceitName + "\n" + "FaceitID: " + profile.FaceitGuid + "\n" + "Discord ID:" + profile.DiscordID + "\n"
+    return "Faceit Name: " + profile.FaceitName + "\n" + "FaceitID: " + profile.FaceitGuid + "\n" + "Discord ID: " + profile.DiscordID + "\n"
 }
