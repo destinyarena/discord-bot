@@ -8,5 +8,4 @@ func Member(s *discordgo.Session, m *discordgo.Member) {
     discord := config.LoadDiscord()
 
     s.GuildMemberRoleAdd(m.GuildID, m.User.ID, discord.JoinRoleID)
-    s.GuildMemberRoleAdd(m.GuildID, m.User.ID, discord.DividerRoleID)
 }
