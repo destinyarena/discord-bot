@@ -4,7 +4,8 @@ import (
     "github.com/arturoguerra/d2arena/internal/router"
     "github.com/arturoguerra/d2arena/internal/handlers"
     "github.com/arturoguerra/d2arena/internal/config"
-    "github.com/arturoguerra/d2arena/internal/commands"
+//    "github.com/arturoguerra/d2arena/internal/commands"
+    "github.com/arturoguerra/d2arena/internal/moderation"
     "github.com/arturoguerra/d2arena/internal/background"
     "github.com/arturoguerra/d2arena/internal/api"
     "github.com/bwmarrin/discordgo"
@@ -43,7 +44,8 @@ func main() {
         cfg,
     )
 
-    commands.New(r)
+    //commands.New(r)
+    moderation.New(r)
 
     dgo.AddHandler(func (s *discordgo.Session, m *discordgo.MessageCreate) {
         r.Handler(m)

@@ -41,17 +41,16 @@ func checkHub(hubid string, guid string) bool {
 
 
 func updateRoles(s *discordgo.Session, guildid string, p *structs.RolesPayload, cfg *structs.Discord) {
-        v := validator.New()
-        for _, hub := range hubs {
-            if err := v.Struct(hub); err == nil {
-                if inhub := checkHub(hub.Id, p.Faceit); inhub == false {
-                    if err = sendLink(s, hub.Id, p.Discord); err == nil {
-                        s.GuildMemberRoleAdd(guildid, p.Discord, hub.RoleID)
-                    }
+    v := validator.New()
+    for _, hub := range hubs {
+        if err := v.Struct(hub); err == nil {
+            if inhub := checkHub(hub.Id, p.Faceit); inhub == false {
+                if err = sendLink(s, hub.Id, p.Discord); err == nil {
+                    s.GuildMemberRoleAdd(guildid, p.Discord, hub.RoleID)
                 }
-
             }
         }
+    }
 }
 
 func rolesFunc(s *discordgo.Session) echo.HandlerFunc {
