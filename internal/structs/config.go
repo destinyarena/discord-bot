@@ -19,6 +19,7 @@ type (
         Prefix string
         Token string
         JoinRoleID string
+        DividerRoleID string
         GuildID string
         GeneralDiv string
         DoublesDiv string
