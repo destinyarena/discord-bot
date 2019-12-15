@@ -32,8 +32,10 @@ func NewAddHeaderTransport(headers map[string]string) *AddHeaderTransport {
 }
 
 var requests Requests
-
+var StaffChannelID string
 func init() {
+
+    StaffChannelID = "655803628644335661"
     faceit := config.LoadFaceit()
     api := &http.Client{Transport: NewAddHeaderTransport(map[string]string{"Authorization": "Bearer " + faceit.ApiToken})}
     internal := &http.Client{}
@@ -47,5 +49,5 @@ func init() {
 
 func New(r *router.Router) {
     r.On("ban", Ban)
-    //r.On("qban", QBan)
+    r.On("profile", getProfile)
 }

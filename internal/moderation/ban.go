@@ -22,7 +22,7 @@ func Ban(ctx *router.Context) {
         return
     }
 
-    if ctx.ChannelID != "651977944113217564" {
+    if ctx.ChannelID != StaffChannelID {
         return
     }
 
