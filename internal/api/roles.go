@@ -19,27 +19,34 @@ type Hub struct {
 var hubs = [2]Hub{}
 
 func init() {
+    faceit := config.LoadFaceit()
+    discord := config.LoadDiscord()
+
     general := Hub{
+        faceit.GeneralDiv,
+        discord.GeneralDiv,
     }
 
-    stadium := Hub{
+    doubles := Hub{
+        faceit.DoublesDiv,
+        discord.DoublesDiv,
     }
 
-    hubs = [2]Hub{general, stadium}
+    hubs = [2]Hub{general, doubles}
 }
 
-func checkHub(hubid string) bool {
+func checkHub(hubid string, guid string) bool {
     return false
 }
 
 
-func updateRoles(s *discordgo.Session, gid string, p *structs.RolesPayload, cfg *structs.Discord) {
+func updateRoles(s *discordgo.Session, guildid string, p *structs.RolesPayload, cfg *structs.Discord) {
         for _, hub := range hubs {
-            if inhub := checkHub(p.Faceit); inhub == false {
+            if inhub := checkHub(hub.Id, p.Faceit); inhub == false {
                 sendLink(s, hub.Id, p.Discord)
             }
 
-            s.GuildMemberRoleAdd(gid, p.Discord, hub.RoleID)
+            s.GuildMemberRoleAdd(guildid, p.Discord, hub.RoleID)
         }
 }
 

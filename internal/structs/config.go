@@ -11,6 +11,8 @@ type (
     Faceit struct {
         UserToken string
         ApiToken string
+        GeneralDiv string
+        DoublesDiv string
     }
 
     Discord struct {
@@ -18,10 +20,7 @@ type (
         Token string
         JoinRoleID string
         GuildID string
-        Div1 string
-        Div2 string
-        Div3 string
-        DivD string
-        DivS string
+        GeneralDiv string
+        DoublesDiv string
     }
 )
