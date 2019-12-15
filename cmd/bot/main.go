@@ -66,7 +66,7 @@ func main() {
     api.New(e, dgo)
 
     go func() {
-        if err := e.Start(":8080"); err != nil {
+        if err := e.Start(":9080"); err != nil {
             e.Logger.Info("Shutting down the server!")
         }
     }()

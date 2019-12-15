@@ -11,7 +11,7 @@ func LoadDiscord() *structs.Discord {
     joinrole := os.Getenv("DJOINROLEID")
     dguild := os.Getenv("DGUILD")
 
-    gendiv := os.Getenv("DGENDIV")
+    gendiv := os.Getenv("DGENERALDIV")
     doublesdiv := os.Getenv("DDOUBLESDIV")
     return &structs.Discord{
         prefix,

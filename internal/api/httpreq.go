@@ -9,6 +9,7 @@ import (
     "bytes"
     "github.com/bwmarrin/discordgo"
     "fmt"
+    "errors"
 )
 
 func genLink(hubid string) (string, error) {
@@ -43,26 +44,32 @@ func genLink(hubid string) (string, error) {
     var body structs.ResponseBody
     json.Unmarshal([]byte(rawbody), &body)
 
+    if body.Payload.Code == "" {
+        err = errors.New("Invalid invite code")
+        return "", err
+    }
+
     link := "https://www.faceit.com/en/inv/" + body.Payload.Code
 
     return link, nil
 }
 
-func sendLink(s *discordgo.Session, hubid string, uid string) {
+func sendLink(s *discordgo.Session, hubid string, uid string) error {
     link, err := genLink(hubid)
     if err != nil {
-        return
+        return err
     }
 
     channel, err := s.UserChannelCreate(uid)
     if err != nil {
-        return
+        return err
     }
 
     if _, err := s.ChannelMessageSend(channel.ID, link); err != nil {
         fmt.Println("Error sending invite to :" + uid)
+        return err
     } else {
         fmt.Println("Sending " + link + " to " + uid)
+        return nil
     }
 }
-

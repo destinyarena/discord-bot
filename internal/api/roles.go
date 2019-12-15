@@ -12,8 +12,8 @@ import (
 
 
 type Hub struct {
-    Id string
-    RoleID string
+    Id string `validate:"required"`
+    RoleID string `validate:"required"`
 }
 
 var hubs = [2]Hub{}
@@ -41,12 +41,16 @@ func checkHub(hubid string, guid string) bool {
 
 
 func updateRoles(s *discordgo.Session, guildid string, p *structs.RolesPayload, cfg *structs.Discord) {
+        v := validator.New()
         for _, hub := range hubs {
-            if inhub := checkHub(hub.Id, p.Faceit); inhub == false {
-                sendLink(s, hub.Id, p.Discord)
-            }
+            if err := v.Struct(hub); err == nil {
+                if inhub := checkHub(hub.Id, p.Faceit); inhub == false {
+                    if err = sendLink(s, hub.Id, p.Discord); err == nil {
+                        s.GuildMemberRoleAdd(guildid, p.Discord, hub.RoleID)
+                    }
+                }
 
-            s.GuildMemberRoleAdd(guildid, p.Discord, hub.RoleID)
+            }
         }
 }
 
@@ -78,8 +82,9 @@ func rolesFunc(s *discordgo.Session) echo.HandlerFunc {
 
         v := validator.New()
 
-        err = v.Struct(payload)
-        fmt.Println(err)
+        if err = v.Struct(payload); err != nil {
+            return c.String(http.StatusBadRequest, "Error invalid payload")
+        }
 
         fmt.Println(payload)
 
