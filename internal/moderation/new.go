@@ -4,6 +4,7 @@ import (
     "github.com/arturoguerra/d2arena/internal/router"
     "github.com/arturoguerra/d2arena/internal/config"
     "net/http"
+    "fmt"
 )
 
 type (
