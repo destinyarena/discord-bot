@@ -38,20 +38,30 @@ func Ban(ctx *router.Context) {
         return
     }
 
-    FaceitBan(profile.FaceitGuid, reason)
-    DiscordBan(ctx, uid, reason)
-    ctx.Session.ChannelMessageSend(ctx.ChannelID, "Banned user from discord and faceit")
+    if errs := FaceitBan(profile.FaceitGuid, reason); len(errs) != 0 {
+        ctx.Session.ChannelMessageSend(ctx.ChannelID, "Error banning user from faceit please do it manually!")
+    }
+
+    if err = DiscordBan(ctx, uid, reason); err != nil {
+        ctx.Session.ChannelMessageSend(ctx.ChannelID, "Error banning user from discord please do it manually")
+    }
+
+    if err == nil {
+        ctx.Session.ChannelMessageSend(ctx.ChannelID, "Banned user from discord and faceit")
+    }
 }
 
-func DiscordBan (ctx *router.Context, uid, reason string) {
-    ctx.Session.GuildBanCreate(ctx.GuildID, uid, 7)
+func DiscordBan (ctx *router.Context, uid, reason string) error {
+    err := ctx.Session.GuildBanCreate(ctx.GuildID, uid, 7)
+    return err
 }
 
-func FaceitBan (id string, reason string) {
+func FaceitBan (id string, reason string) []error {
     faceit := config.LoadFaceit()
     gen := faceit.GeneralDiv
     doubles := faceit.DoublesDiv
-    hubs := [2]string{gen,doubles}
+    hubs := [2]string{gen, doubles}
+    errs := []error{}
     for _, hub := range hubs {
         url := "https://api.faceit.com/hubs/v1/hub/" + hub + "/ban/" + id
         payload := BanPayload{
@@ -72,9 +82,11 @@ func FaceitBan (id string, reason string) {
 
         if err != nil {
             fmt.Println("Error banning user from faceit")
-            return
+            errs = append(errs, err)
+        } else {
+           fmt.Println("Banned user from faceit")
         }
-
-        fmt.Println("Banned user from faceit")
     }
+
+    return errs
 }
