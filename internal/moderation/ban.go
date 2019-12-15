@@ -5,6 +5,7 @@ import (
     "github.com/arturoguerra/d2arena/internal/config"
     "strings"
     "fmt"
+    "errors"
     "encoding/json"
     "bytes"
     "io/ioutil"
@@ -81,8 +82,12 @@ func FaceitBan (id string, reason string) []error {
         fmt.Println(string(rawbody))
         fmt.Println(resp.StatusCode)
 
-        if err != nil {
+        if err != nil || resp.StatusCode != 200 {
             fmt.Println("Error banning user from faceit")
+            if err == nil {
+                err = errors.New("Can't kick from faceit :(")
+            }
+
             errs = append(errs, err)
         } else {
            fmt.Println("Banned user from faceit")
