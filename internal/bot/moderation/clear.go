@@ -10,7 +10,7 @@ import (
     "gopkg.in/go-playground/validator.v9"
 )
 
-func deleteProfile(id string, s int) (*Profile, error) {
+func deleteProfile(id string, s int) error {
     base := "https://destinyarena.fireteamsupport.net/infoexchange.php?key=2YHSbPt5GJ9Uupgk"
 
     switch s {
@@ -29,23 +29,13 @@ func deleteProfile(id string, s int) (*Profile, error) {
 
     fmt.Println(base)
     req, _ := http.NewRequest("GET", base, nil)
-    resp, err := requests.Internal.Do(req)
+    _, err := requests.Internal.Do(req)
 
     if err != nil {
-        return nil, err
+        return err
     }
 
-    rawbody, _ := ioutil.ReadAll(resp.Body)
-
-    var body Profile
-    json.Unmarshal([]byte(rawbody), &body)
-
-    v := validator.New()
-    if err = v.Struct(body); err != nil {
-        return nil, err
-    }
-
-    return &body, nil
+    return nil
 }
 
 
@@ -72,12 +62,12 @@ func Delete(ctx *router.Context) {
 
     idtype := sortProfileId(uid)
 
-    profile, err := deleteProfile(uid, idtype)
+    err := deleteProfile(uid, idtype)
     if err != nil {
         fmt.Println(err)
         ctx.Session.ChannelMessageSend(ctx.ChannelID, "Error Deleting Profile")
         return
     }
 
-    ctx.Session.ChannelMessageSend(ctx.ChannelID, "Deleted: \n" + generateProfile(ctx, profile))
+    ctx.Session.ChannelMessageSend(ctx.ChannelID, "Deleted profile from the database")
 }
