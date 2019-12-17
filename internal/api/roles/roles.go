@@ -1,4 +1,4 @@
-package api
+package roles
 
 import (
     "github.com/bwmarrin/discordgo"
@@ -53,7 +53,7 @@ func updateRoles(s *discordgo.Session, guildid string, p *structs.RolesPayload, 
     }
 }
 
-func rolesFunc(s *discordgo.Session) echo.HandlerFunc {
+func New(s *discordgo.Session) echo.HandlerFunc {
     discord := config.LoadDiscord()
     authtoken := config.LoadAuth()
     return func(c echo.Context) error {

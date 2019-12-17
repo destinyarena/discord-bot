@@ -1,13 +1,13 @@
 package main
 
 import (
-    "github.com/arturoguerra/d2arena/internal/router"
-    "github.com/arturoguerra/d2arena/internal/handlers"
-    "github.com/arturoguerra/d2arena/internal/config"
-//    "github.com/arturoguerra/d2arena/internal/commands"
-    "github.com/arturoguerra/d2arena/internal/moderation"
-    "github.com/arturoguerra/d2arena/internal/background"
     "github.com/arturoguerra/d2arena/internal/api"
+    "github.com/arturoguerra/d2arena/internal/router"
+    "github.com/arturoguerra/d2arena/internal/config"
+    "github.com/arturoguerra/d2arena/internal/background"
+    //"github.com/arturoguerra/d2arena/internal/bot/commands"
+    "github.com/arturoguerra/d2arena/internal/bot/handlers"
+    "github.com/arturoguerra/d2arena/internal/bot/moderation"
     "github.com/bwmarrin/discordgo"
     "fmt"
     "os"

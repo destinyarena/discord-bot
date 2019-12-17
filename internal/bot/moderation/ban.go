@@ -33,7 +33,7 @@ func Ban(ctx *router.Context) {
     split := strings.Split(ctx.Content, " ")
     reason := strings.Join(split[2:], " ")
 
-    profile, err := fetchProfile(uid)
+    profile, err := fetchProfile(uid, 0)
     if err != nil {
         ctx.Session.ChannelMessageSend(ctx.ChannelID, "Error fetching user profile")
         return

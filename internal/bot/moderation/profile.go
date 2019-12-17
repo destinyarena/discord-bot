@@ -2,6 +2,7 @@ package moderation
 
 import (
     "github.com/arturoguerra/d2arena/internal/router"
+    "strings"
 )
 
 func getProfile(ctx *router.Context) {
@@ -13,9 +14,18 @@ func getProfile(ctx *router.Context) {
         return
     }
 
-    uid := ctx.Mentions[0].ID
+    var uid string
 
-    profile, err := fetchProfile(uid)
+    if len(ctx.Mentions) > 0 {
+        uid = ctx.Mentions[0].ID
+    } else {
+        split := strings.Split(ctx.Content, " ")
+        uid = strings.Join(split[2:], " ")
+    }
+
+    idtype := sortProfileId(uid)
+
+    profile, err := fetchProfile(uid, idtype)
     if err != nil {
         ctx.Session.ChannelMessageSend(ctx.ChannelID, "Error fetching user profile")
         return
