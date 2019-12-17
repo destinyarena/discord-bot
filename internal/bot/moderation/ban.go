@@ -20,20 +20,28 @@ type BanPayload struct {
 
 
 func Ban(ctx *router.Context) {
-    if len(ctx.Mentions) != 1 {
-        return
-    }
-
     if ctx.ChannelID != StaffChannelID {
         return
     }
 
-    uid := ctx.Mentions[0].ID
+    var uid string
+    if len(ctx.Mentions) > 0 {
+        uid = ctx.Mentions[0].ID
+    } else {
+        split := strings.Split(ctx.Content, " ")
+        uid = split[1]
+    }
+
+    if uid == "" {
+        return
+    }
 
     split := strings.Split(ctx.Content, " ")
     reason := strings.Join(split[2:], " ")
 
-    profile, err := fetchProfile(uid, 0)
+    idtype := sortProfileId(uid)
+
+    profile, err := fetchProfile(uid, idtype)
     if err != nil {
         ctx.Session.ChannelMessageSend(ctx.ChannelID, "Error fetching user profile")
         return
