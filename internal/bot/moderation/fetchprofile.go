@@ -19,9 +19,9 @@ type Profile struct {
 func sortProfileId(id string) int {
     var returntype int
 
-    if m, _ := regexp.Match(`\d+`, []byte(id)); m {
+    if m, _ := regexp.Match(`^\d+$`, []byte(id)); m {
         returntype = 0
-    } else if m, _ := regexp.Match(`([A-f0-9\-])+`, []byte(id)); m {
+    } else if m, _ := regexp.Match(`^([A-f0-9\-])+$`, []byte(id)); m {
         returntype = 1
     } else {
         returntype = 2
