@@ -6,10 +6,6 @@ import (
 )
 
 func getProfile(ctx *router.Context) {
-    if len(ctx.Mentions) != 1 {
-        return
-    }
-
     if ctx.ChannelID != StaffChannelID {
         return
     }
@@ -21,6 +17,10 @@ func getProfile(ctx *router.Context) {
     } else {
         split := strings.Split(ctx.Content, " ")
         uid = strings.Join(split[2:], " ")
+    }
+
+    if uid == "" {
+        return
     }
 
     idtype := sortProfileId(uid)
