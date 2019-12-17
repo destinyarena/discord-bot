@@ -5,9 +5,6 @@ import (
     "strings"
     "fmt"
     "net/http"
-    "encoding/json"
-    "io/ioutil"
-    "gopkg.in/go-playground/validator.v9"
 )
 
 func deleteProfile(id string, s int) error {
