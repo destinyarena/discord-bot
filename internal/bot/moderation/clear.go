@@ -74,6 +74,7 @@ func Delete(ctx *router.Context) {
 
     profile, err := deleteProfile(uid, idtype)
     if err != nil {
+        fmt.Println(err)
         ctx.Session.ChannelMessageSend(ctx.ChannelID, "Error Deleting Profile")
         return
     }
