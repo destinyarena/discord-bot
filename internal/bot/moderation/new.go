@@ -53,5 +53,6 @@ func init() {
 
 func New(r *router.Router) {
     r.On("ban", Ban)
+    r.On("remove", Delete)
     r.On("profile", getProfile)
 }
