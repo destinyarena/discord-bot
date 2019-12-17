@@ -17,7 +17,7 @@ func getProfile(ctx *router.Context) {
         uid = ctx.Mentions[0].ID
     } else {
         split := strings.Split(ctx.Content, " ")
-        uid = strings.Join(split[2:], " ")
+        uid = strings.Join(split[1:], " ")
     }
 
     fmt.Println(ctx.Content)
