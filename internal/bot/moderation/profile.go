@@ -3,6 +3,7 @@ package moderation
 import (
     "github.com/arturoguerra/d2arena/internal/router"
     "strings"
+    "fmt"
 )
 
 func getProfile(ctx *router.Context) {
@@ -18,6 +19,9 @@ func getProfile(ctx *router.Context) {
         split := strings.Split(ctx.Content, " ")
         uid = strings.Join(split[2:], " ")
     }
+
+    fmt.Println(ctx.Content)
+    fmt.Println(uid)
 
     if uid == "" {
         return
