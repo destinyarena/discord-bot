@@ -19,8 +19,6 @@ func sendLink(hubid string) (string, error) {
         1,
     })
 
-    fmt.Println(hubid)
-
     client := &http.Client{}
 
     fitcfg := config.LoadFaceit()

@@ -63,19 +63,7 @@ func sendInvites(s *discordgo.Session, guildid string, p *structs.RolesPayload, 
 
 func New(s *discordgo.Session) echo.HandlerFunc {
     discord := config.LoadDiscord()
-    authtoken := config.LoadAuth()
     return func(c echo.Context) error {
-        if authtoken == "" {
-            return c.String(500, "Missing token")
-        }
-
-        auth := c.Request().Header.Get("Authorization")
-        if auth != "Basic " + authtoken {
-            return c.String(401, "Invalid Token")
-        }
-
-        fmt.Println("Front-end authenticated")
-
         g, err := s.Guild(discord.GuildID)
         if err != nil {
             fmt.Println(err)
