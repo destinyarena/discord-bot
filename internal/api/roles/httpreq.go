@@ -15,9 +15,11 @@ func sendLink(hubid string) (string, error) {
         hubid,
         "hub",
         "regular",
-        0,
+        1800,
         1,
     })
+
+    fmt.Println(hubid)
 
     client := &http.Client{}
 
@@ -26,7 +28,6 @@ func sendLink(hubid string) (string, error) {
     req, _ := http.NewRequest("POST", "https://api.faceit.com/invitations/v1/invite", bytes.NewBuffer(reqBody))
     req.Header.Set("Content-Type", "application/json")
     req.Header.Set("Authorization", "Bearer " + fitcfg.UserToken)
-
     resp, err := client.Do(req)
     defer resp.Body.Close()
 

@@ -41,22 +41,21 @@ func checkHub(hubid string, guid string) bool {
 
 
 func sendInvites(s *discordgo.Session, guildid string, p *structs.RolesPayload, cfg *structs.Discord) {
-    v := validator.New()
+    //v := validator.New()
     message := "Invite links to join FACEIT Hubs.\n\n"
     send := false
     for _, hub := range hubs {
-        if err := v.Struct(hub); err == nil {
-            if inhub := checkHub(hub.Id, p.Faceit); inhub == false {
-                if link, _ := sendLink(hub.Id); link != "" {
-                    message += strings.Replace(hub.Format, "{invite}", link, 1)
-                    send = true
-                }
+        if inhub := checkHub(hub.Id, p.Faceit); inhub == false {
+            if link, err := sendLink(hub.Id); err == nil {
+                message += strings.Replace(hub.Format, "{invite}", link, 1)
+                send = true
             }
         }
     }
 
     if send {
-        s.ChannelMessageSend(p.Discord, message)
+        channel, _ := s.UserChannelCreate(p.Discord)
+        s.ChannelMessageSend(channel.ID, message)
     }
 
     s.GuildMemberRoleAdd(cfg.GuildID, p.Discord, cfg.FaceitRoleID)
@@ -93,9 +92,6 @@ func New(s *discordgo.Session) echo.HandlerFunc {
         if err = v.Struct(payload); err != nil {
             return c.String(http.StatusBadRequest, "Error invalid payload")
         }
-
-        fmt.Println(payload)
-
 
         sendInvites(s, g.ID, payload, discord)
         return c.String(http.StatusOK, "Roles have been assigned && and invites have been sent")
