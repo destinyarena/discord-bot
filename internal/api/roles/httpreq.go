@@ -10,7 +10,7 @@ import (
     "errors"
 )
 
-func genLink(hubid string) (string, error) {
+func sendLink(hubid string) (string, error) {
     reqBody, _ := json.Marshal(structs.ReqBody{
         hubid,
         "hub",
@@ -48,15 +48,6 @@ func genLink(hubid string) (string, error) {
     }
 
     link := "https://www.faceit.com/en/inv/" + body.Payload.Code
-
-    return link, nil
-}
-
-func sendLink(hubid string) (string, error) {
-    link, err := genLink(hubid)
-    if err != nil {
-        return "", err
-    }
 
     return link, nil
 }

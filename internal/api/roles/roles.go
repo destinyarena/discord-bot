@@ -47,7 +47,7 @@ func sendInvites(s *discordgo.Session, guildid string, p *structs.RolesPayload, 
     for _, hub := range hubs {
         if err := v.Struct(hub); err == nil {
             if inhub := checkHub(hub.Id, p.Faceit); inhub == false {
-                if link, err := sendLink(hub.Id); err == nil {
+                if link, _ := sendLink(hub.Id); link != "" {
                     message += strings.Replace(hub.Format, "{invite}", link, 1)
                     send = true
                 }
