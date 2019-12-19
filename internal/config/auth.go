@@ -3,5 +3,5 @@ package config
 import "os"
 
 func LoadAuth() string {
-    return os.Getenv("AUTHTOKEN")
+    return os.Getenv("AUTH_TOKEN")
 }

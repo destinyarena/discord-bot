@@ -6,6 +6,7 @@ import (
     "github.com/arturoguerra/d2arena/internal/structs"
     "github.com/arturoguerra/d2arena/internal/config"
     "net/http"
+    "strings"
     "gopkg.in/go-playground/validator.v9"
     "fmt"
 )
@@ -13,23 +14,22 @@ import (
 
 type Hub struct {
     Id string `validate:"required"`
-    RoleID string `validate:"required"`
+    Format string `validate:"required"`
 }
 
-var hubs = [2]Hub{}
+var hubs [2]Hub
 
 func init() {
     faceit := config.LoadFaceit()
-    discord := config.LoadDiscord()
 
     general := Hub{
         faceit.GeneralDiv,
-        discord.GeneralDiv,
+        "Destiny Arena Division: {invite}\n",
     }
 
     doubles := Hub{
         faceit.DoublesDiv,
-        discord.DoublesDiv,
+        "Destiny Doubles Division: {invite}\n",
     }
 
     hubs = [2]Hub{general, doubles}
@@ -40,17 +40,26 @@ func checkHub(hubid string, guid string) bool {
 }
 
 
-func updateRoles(s *discordgo.Session, guildid string, p *structs.RolesPayload, cfg *structs.Discord) {
+func sendInvites(s *discordgo.Session, guildid string, p *structs.RolesPayload, cfg *structs.Discord) {
     v := validator.New()
+    message := "Invite links to join FACEIT Hubs.\n\n"
+    send := false
     for _, hub := range hubs {
         if err := v.Struct(hub); err == nil {
             if inhub := checkHub(hub.Id, p.Faceit); inhub == false {
-                if err = sendLink(s, hub.Id, p.Discord); err == nil {
-                    s.GuildMemberRoleAdd(guildid, p.Discord, hub.RoleID)
+                if link, err := sendLink(hub.Id); err == nil {
+                    message += strings.Replace(hub.Format, "{invite}", link, 1)
+                    send = true
                 }
             }
         }
     }
+
+    if send {
+        s.ChannelMessageSend(p.Discord, message)
+    }
+
+    s.GuildMemberRoleAdd(cfg.GuildID, p.Discord, cfg.FaceitRoleID)
 }
 
 func New(s *discordgo.Session) echo.HandlerFunc {
@@ -88,7 +97,7 @@ func New(s *discordgo.Session) echo.HandlerFunc {
         fmt.Println(payload)
 
 
-        updateRoles(s, g.ID, payload, discord)
-        return c.String(http.StatusOK, "Roles have been assigned")
+        sendInvites(s, g.ID, payload, discord)
+        return c.String(http.StatusOK, "Roles have been assigned && and invites have been sent")
     }
 }

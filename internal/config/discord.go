@@ -6,19 +6,17 @@ import (
 )
 
 func LoadDiscord() *structs.Discord {
-    prefix := os.Getenv("PREFIX")
-    token := os.Getenv("DTOKEN")
-    joinrole := os.Getenv("DJOINROLEID")
-    dguild := os.Getenv("DGUILD")
+    prefix := os.Getenv("DISCORD_PREFIX")
+    token := os.Getenv("DISCORD_TOKEN")
+    joinrole := os.Getenv("DISCORD_JOIN_ROLE_ID")
+    dguild := os.Getenv("DISCORD_GUILD_ID")
 
-    gendiv := os.Getenv("DGENERALDIV")
-    doublesdiv := os.Getenv("DDOUBLESDIV")
+    faceit := os.Getenv("DISCORD_FACEIT_DIV_ROLE")
     return &structs.Discord{
         prefix,
         token,
         joinrole,
         dguild,
-        gendiv,
-        doublesdiv,
+        faceit,
     }
 }

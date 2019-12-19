@@ -20,7 +20,6 @@ type (
         Token string
         JoinRoleID string
         GuildID string
-        GeneralDiv string
-        DoublesDiv string
+        FaceitRoleID string
     }
 )

@@ -7,8 +7,6 @@ import (
     "encoding/json"
     "io/ioutil"
     "bytes"
-    "github.com/bwmarrin/discordgo"
-    "fmt"
     "errors"
 )
 
@@ -54,22 +52,11 @@ func genLink(hubid string) (string, error) {
     return link, nil
 }
 
-func sendLink(s *discordgo.Session, hubid string, uid string) error {
+func sendLink(hubid string) (string, error) {
     link, err := genLink(hubid)
     if err != nil {
-        return err
+        return "", err
     }
 
-    channel, err := s.UserChannelCreate(uid)
-    if err != nil {
-        return err
-    }
-
-    if _, err := s.ChannelMessageSend(channel.ID, link); err != nil {
-        fmt.Println("Error sending invite to :" + uid)
-        return err
-    } else {
-        fmt.Println("Sending " + link + " to " + uid)
-        return nil
-    }
+    return link, nil
 }
