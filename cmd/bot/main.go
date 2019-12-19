@@ -67,8 +67,13 @@ func main() {
 
     api.New(e, dgo)
 
+    port := os.Getenv("PORT")
+    if port == "" {
+        port = "8080"
+    }
+
     go func() {
-        if err := e.Start(":9080"); err != nil {
+        if err := e.Start(":" + port); err != nil {
             e.Logger.Info("Shutting down the server!")
         }
     }()
