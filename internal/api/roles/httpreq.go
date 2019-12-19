@@ -15,7 +15,7 @@ func genLink(hubid string) (string, error) {
         hubid,
         "hub",
         "regular",
-        1800,
+        0,
         1,
     })
 
