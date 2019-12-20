@@ -24,6 +24,7 @@ type (
         GuildID string
         JoinRoleID string
         StaffRoleID string
+        BannedRoleID string
 
         // Reaction roles stuff
         RegistrationRoleID string

@@ -38,8 +38,9 @@ func LoadDiscord() *structs.Discord {
     prefix := os.Getenv("DISCORD_PREFIX")
     token := os.Getenv("DISCORD_TOKEN")
 
-    joinrole := os.Getenv("DISCORD_JOIN_ROLE_ID")
     dguild := os.Getenv("DISCORD_GUILD_ID")
+    bannedrole := os.Getenv("DISCORD_BANNED_ROLE_ID")
+    joinrole := os.Getenv("DISCORD_JOIN_ROLE_ID")
     staffrole := os.Getenv("DISCORD_STAFF_ROLE_ID")
 
     registrationrole := os.Getenv("DISCORD_REGISTRATION_ROLE_ID")
@@ -63,5 +64,6 @@ func LoadDiscord() *structs.Discord {
         RulesEmojiID: rulesemojiid,
         InvitesMessageID: invitesmsgid,
         Reactions: reactions,
+        BannedRoleID: bannedrole,
     }
 }
