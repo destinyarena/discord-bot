@@ -14,7 +14,7 @@ func loadReactions() []*structs.DiscordReaction {
     doublesformat := os.Getenv("DIVISION_DOUBLES_FORMAT")
     doublesid := os.Getenv("DIVISION_DOUBLES_ID")
     doublesroleid := os.Getenv("DISCORD_DIVISION_DOUBLES_ROLE_ID")
-    doublesemojiid := os.Getenv("DISCORD_DIVIONS_DOUBLES_EMOJI_ID")
+    doublesemojiid := os.Getenv("DISCORD_DIVISION_DOUBLES_EMOJI_ID")
 
     return []*structs.DiscordReaction{
         &structs.DiscordReaction{
