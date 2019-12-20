@@ -54,6 +54,7 @@ func main() {
 
     dgo.AddHandler(handlers.OnReady)
     dgo.AddHandler(handlers.OnMemberJoin)
+    dgo.AddHandler(handlers.OnMessageReactionAdd)
 
     go background.UpdateRoles(dgo)
 

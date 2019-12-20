@@ -12,27 +12,11 @@ import (
 )
 
 
-type Hub struct {
-    Id string `validate:"required"`
-    Format string `validate:"required"`
-}
-
-var hubs [2]Hub
+var hubs []*structs.DiscordReaction
 
 func init() {
-    faceit := config.LoadFaceit()
-
-    general := Hub{
-        faceit.GeneralDiv,
-        "Destiny Arena Division: {invite}\n",
-    }
-
-    doubles := Hub{
-        faceit.DoublesDiv,
-        "Destiny Doubles Division: {invite}\n",
-    }
-
-    hubs = [2]Hub{general, doubles}
+    discord := config.LoadDiscord()
+    hubs = discord.Reactions
 }
 
 func checkHub(hubid string, guid string) bool {
@@ -41,12 +25,11 @@ func checkHub(hubid string, guid string) bool {
 
 
 func sendInvites(s *discordgo.Session, guildid string, p *structs.RolesPayload, cfg *structs.Discord) {
-    //v := validator.New()
-    message := "Invite links to join FACEIT Hubs.\n\n"
+    message := "Invite links to join FACEIT Hubs\n\n"
     send := false
     for _, hub := range hubs {
-        if inhub := checkHub(hub.Id, p.Faceit); inhub == false {
-            if link, err := sendLink(hub.Id); err == nil {
+        if inhub := checkHub(hub.HubID, p.Faceit); inhub == false {
+            if link, err := sendLink(hub.HubID); err == nil {
                 message += strings.Replace(hub.Format, "{invite}", link, 1)
                 send = true
             }
@@ -58,7 +41,7 @@ func sendInvites(s *discordgo.Session, guildid string, p *structs.RolesPayload, 
         s.ChannelMessageSend(channel.ID, message)
     }
 
-    s.GuildMemberRoleAdd(cfg.GuildID, p.Discord, cfg.FaceitRoleID)
+    s.GuildMemberRoleAdd(cfg.GuildID, p.Discord, cfg.RegistrationRoleID)
 }
 
 func New(s *discordgo.Session) echo.HandlerFunc {
