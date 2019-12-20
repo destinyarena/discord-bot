@@ -26,8 +26,10 @@ type (
         StaffRoleID string
 
         // Reaction roles stuff
-        RegistrationMessageID string
         RegistrationRoleID string
+        RulesRoleID string
+        RulesMessageID string
+        RulesEmojiID string
         InvitesMessageID string
         Reactions []*DiscordReaction
     }

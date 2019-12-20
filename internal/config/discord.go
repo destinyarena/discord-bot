@@ -9,7 +9,7 @@ func loadReactions() []*structs.DiscordReaction {
     arenaformat := os.Getenv("DIVISION_ARENA_FORMAT")
     arenaid := os.Getenv("DIVISION_ARENA_ID")
     arenaroleid := os.Getenv("DISCORD_DIVISION_ARENA_ROLE_ID")
-    arenaemojiid := os.Getenv("DISCORD_DIVIONS_ARENA_EMOJI_ID")
+    arenaemojiid := os.Getenv("DISCORD_DIVISION_ARENA_EMOJI_ID")
 
     doublesformat := os.Getenv("DIVISION_DOUBLES_FORMAT")
     doublesid := os.Getenv("DIVISION_DOUBLES_ID")
@@ -43,9 +43,13 @@ func LoadDiscord() *structs.Discord {
     staffrole := os.Getenv("DISCORD_STAFF_ROLE_ID")
 
     registrationrole := os.Getenv("DISCORD_REGISTRATION_ROLE_ID")
-    registrationmsg := os.Getenv("DISCORD_REGISTRATION_MESSAGE_ID")
 
     invitesmsgid := os.Getenv("DISCORD_INVITES_MESSAGE_ID")
+
+    rulesrole := os.Getenv("DISCORD_RULES_ROLE_ID")
+    rulesmessage := os.Getenv("DISCORD_RULES_MESSAGE_ID")
+    rulesemojiid := os.Getenv("DISCORD_RULES_EMOJI_ID")
+
     reactions := loadReactions()
     return &structs.Discord{
         Prefix: prefix,
@@ -53,8 +57,10 @@ func LoadDiscord() *structs.Discord {
         GuildID: dguild,
         JoinRoleID: joinrole,
         StaffRoleID: staffrole,
-        RegistrationMessageID: registrationmsg,
         RegistrationRoleID: registrationrole,
+        RulesRoleID: rulesrole,
+        RulesMessageID: rulesmessage,
+        RulesEmojiID: rulesemojiid,
         InvitesMessageID: invitesmsgid,
         Reactions: reactions,
     }
