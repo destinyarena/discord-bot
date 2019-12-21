@@ -42,7 +42,6 @@ func sendInvites(s *discordgo.Session, guildid string, p *structs.RolesPayload, 
         s.ChannelMessageSend(channel.ID, message)
     }
 
-    s.GuildMemberRoleAdd(cfg.GuildID, p.Discord, cfg.RegistrationRoleID)
 }
 
 func New(s *discordgo.Session) echo.HandlerFunc {
@@ -65,7 +64,8 @@ func New(s *discordgo.Session) echo.HandlerFunc {
             return c.String(http.StatusBadRequest, "Error invalid payload")
         }
 
-        sendInvites(s, g.ID, payload, discord)
-        return c.String(http.StatusOK, "Roles have been assigned && and invites have been sent")
+        //sendInvites(s, g.ID, payload, discord)
+        s.GuildMemberRoleAdd(g.ID, payload.Discord, discord.RegistrationRoleID)
+        return c.String(http.StatusOK, "Roles have been assigned")
     }
 }
