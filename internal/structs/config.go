@@ -32,6 +32,7 @@ type (
         RulesMessageID string
         RulesEmojiID string
         InvitesMessageID string
+        InvitesAutoEmojiID string
         Reactions []*DiscordReaction
     }
 

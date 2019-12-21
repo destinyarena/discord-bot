@@ -6,7 +6,7 @@ import (
     "github.com/bwmarrin/discordgo"
     "strings"
     "errors"
-//    "fmt"
+    "fmt"
 )
 
 var cfg *structs.Discord
@@ -51,7 +51,7 @@ func invites(s *discordgo.Session, mr *discordgo.MessageReactionAdd) {
     var roles []string
 
     for _, reaction := range cfg.Reactions {
-        if reaction.EmojiID == mr.Emoji.APIName() {
+        if reaction.EmojiID == mr.Emoji.APIName() || mr.Emoji.APIName() == cfg.InvitesAutoEmojiID {
             if checkRole(member.Roles, reaction.RoleID) {
                 if link, _ := getInvite(reaction.HubID); link != "" {
                     roles = append(roles, reaction.RoleID)
@@ -85,6 +85,9 @@ func rules(s *discordgo.Session, mr *discordgo.MessageReactionAdd) {
 
 
 func OnMessageReactionAdd(s *discordgo.Session, mr *discordgo.MessageReactionAdd) {
+    fmt.Println(mr.Emoji.APIName())
+    fmt.Println(cfg.InvitesAutoEmojiID)
+    fmt.Println(mr.Emoji.APIName() == cfg.InvitesAutoEmojiID)
     if cfg.InvitesMessageID == mr.MessageID {
         invites(s, mr)
     } else if cfg.RulesMessageID == mr.MessageID {

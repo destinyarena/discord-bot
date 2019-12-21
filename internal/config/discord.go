@@ -46,6 +46,7 @@ func LoadDiscord() *structs.Discord {
     registrationrole := os.Getenv("DISCORD_REGISTRATION_ROLE_ID")
 
     invitesmsgid := os.Getenv("DISCORD_INVITES_MESSAGE_ID")
+    autoemoji := os.Getenv("DISCORD_INVITES_AUTO_EMOJI_ID")
 
     rulesrole := os.Getenv("DISCORD_RULES_ROLE_ID")
     rulesmessage := os.Getenv("DISCORD_RULES_MESSAGE_ID")
@@ -63,6 +64,7 @@ func LoadDiscord() *structs.Discord {
         RulesMessageID: rulesmessage,
         RulesEmojiID: rulesemojiid,
         InvitesMessageID: invitesmsgid,
+        InvitesAutoEmojiID: autoemoji,
         Reactions: reactions,
         BannedRoleID: bannedrole,
     }
