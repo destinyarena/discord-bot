@@ -66,7 +66,10 @@ func New(s *discordgo.Session) echo.HandlerFunc {
 
         //sendInvites(s, g.ID, payload, discord)
         channel, _ := s.UserChannelCreate(payload.Discord)
-        s.ChannelMessageSend(channel.ID, "> Please click this link to finish registration:\nhttps://discordapp.com/channels/650109209610027034/657733307353792524/657760138282795018")
+        embed := &discordgo.MessageEmbed{
+            Description: "Please click this [link](https://discordapp.com/channels/650109209610027034/657733307353792524/657760138282795018) to get your hub invites!",
+        }
+        s.ChannelMessageSendEmbed(channel.ID, embed)
         s.GuildMemberRoleAdd(g.ID, payload.Discord, discord.RegistrationRoleID)
         return c.String(http.StatusOK, "Roles have been assigned")
     }
