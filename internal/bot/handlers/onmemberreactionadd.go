@@ -58,13 +58,13 @@ func invites(s *discordgo.Session, mr *discordgo.MessageReactionAdd) {
                     roles = append(roles, reaction.RoleID)
                     if reaction.Main {
                         if mainhubs == "" {
-                            mainhubs += "Main Hubs:\n\n"
+                            mainhubs += "Main Hubs:\n"
                         }
 
                         mainhubs += fmt.Sprintf("[%s](%s)\n", reaction.Format, link)
                     } else {
                         if addithubs == "" {
-                            addithubs += "Additional Hubs:\n\n"
+                            addithubs += "Additional Hubs:\n"
                         }
 
                         addithubs += fmt.Sprintf("[%s](%s)\n", reaction.Format, link)
@@ -78,7 +78,7 @@ func invites(s *discordgo.Session, mr *discordgo.MessageReactionAdd) {
 
     if send {
         channel, _ := s.UserChannelCreate(mr.UserID)
-        mainhubs += "\n\n"
+        mainhubs += "\n"
         message := mainhubs + addithubs
         embed := &discordgo.MessageEmbed{
             Title: title,
