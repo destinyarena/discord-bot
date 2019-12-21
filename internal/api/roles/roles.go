@@ -65,6 +65,8 @@ func New(s *discordgo.Session) echo.HandlerFunc {
         }
 
         //sendInvites(s, g.ID, payload, discord)
+        channel, _ := s.UserChannelCreate(payload.Discord)
+        s.ChannelMessageSend(channel.ID, "Please go back to discord to finish registration")
         s.GuildMemberRoleAdd(g.ID, payload.Discord, discord.RegistrationRoleID)
         return c.String(http.StatusOK, "Roles have been assigned")
     }
