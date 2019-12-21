@@ -46,8 +46,8 @@ func invites(s *discordgo.Session, mr *discordgo.MessageReactionAdd) {
     }
 
     title := "Destiny Arena Faceit Invitation(s)"
-    mainhubs := "Main Hubs:\n\n"
-    addithubs := "Additional Hubs:\n\n"
+    var mainhubs string
+    var addithubs string
     send := false
     var roles []string
 
@@ -57,8 +57,16 @@ func invites(s *discordgo.Session, mr *discordgo.MessageReactionAdd) {
                 if link, _ := getInvite(reaction.HubID); link != "" {
                     roles = append(roles, reaction.RoleID)
                     if reaction.Main {
+                        if mainhubs == "" {
+                            mainhubs += "Main Hubs:\n\n"
+                        }
+
                         mainhubs += fmt.Sprintf("[%s](%s)\n", reaction.Format, link)
                     } else {
+                        if addithubs == "" {
+                            addithubs += "Additional Hubs:\n\n"
+                        }
+
                         addithubs += fmt.Sprintf("[%s](%s)\n", reaction.Format, link)
                     }
 
