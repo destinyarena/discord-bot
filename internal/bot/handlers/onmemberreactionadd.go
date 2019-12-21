@@ -4,7 +4,6 @@ import (
     "github.com/arturoguerra/d2arena/internal/structs"
     "github.com/arturoguerra/d2arena/internal/config"
     "github.com/bwmarrin/discordgo"
-    "strings"
     "errors"
     "fmt"
 )
@@ -46,7 +45,9 @@ func invites(s *discordgo.Session, mr *discordgo.MessageReactionAdd) {
         return
     }
 
-    message := "Invite links to join FACEIT Hubs\n\n"
+    title := "Destiny Arena Faceit Invitation(s)"
+    mainhubs := "Main Hubs:\n\n"
+    addithubs := "Additional Hubs:\n\n"
     send := false
     var roles []string
 
@@ -55,7 +56,12 @@ func invites(s *discordgo.Session, mr *discordgo.MessageReactionAdd) {
             if checkRole(member.Roles, reaction.RoleID) {
                 if link, _ := getInvite(reaction.HubID); link != "" {
                     roles = append(roles, reaction.RoleID)
-                    message += strings.Replace(reaction.Format, "{invite}", link, 1) + "\n"
+                    if reaction.Main {
+                        mainhubs += fmt.Sprintf("[%s](%s)\n", reaction.Format, link)
+                    } else {
+                        addithubs += fmt.Sprintf("[%s](%s)\n", reaction.Format, link)
+                    }
+
                     send = true
                 }
             }
@@ -64,7 +70,14 @@ func invites(s *discordgo.Session, mr *discordgo.MessageReactionAdd) {
 
     if send {
         channel, _ := s.UserChannelCreate(mr.UserID)
-        if _, err := s.ChannelMessageSend(channel.ID, message); err == nil {
+        mainhubs += "\n\n"
+        message := mainhubs + addithubs
+        embed := &discordgo.MessageEmbed{
+            Title: title,
+            Description: message,
+        }
+
+        if _, err := s.ChannelMessageSendEmbed(channel.ID, embed); err == nil {
             for _, role := range roles {
                 s.GuildMemberRoleAdd(cfg.GuildID, mr.UserID, role)
             }

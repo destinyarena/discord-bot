@@ -41,6 +41,7 @@ type (
         HubID string
         RoleID string
         EmojiID string
+        Main bool
         SkillLvl int
     }
 )
