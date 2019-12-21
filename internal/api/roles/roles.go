@@ -69,8 +69,16 @@ func New(s *discordgo.Session) echo.HandlerFunc {
         embed := &discordgo.MessageEmbed{
             Description: "Please click this [link](https://discordapp.com/channels/650109209610027034/657733307353792524/657760138282795018) to get your hub invites!",
         }
-        s.ChannelMessageSendEmbed(channel.ID, embed)
-        s.GuildMemberRoleAdd(g.ID, payload.Discord, discord.RegistrationRoleID)
+        if _, err := s.ChannelMessageSendEmbed(channel.ID, embed); err == nil {
+            s.GuildMemberRoleAdd(g.ID, payload.Discord, discord.RegistrationRoleID)
+        } else {
+            embed := &discordgo.MessageEmbed{
+                Title: "403: Forbidden",
+                Description: fmt.Sprintf("Error sending hub channel to <@%s> please contact them", payload.Discord),
+            }
+
+            s.ChannelMessageSendEmbed(discord.LogsID, embed)
+        }
+
         return c.String(http.StatusOK, "Roles have been assigned")
-    }
-}
+    }}

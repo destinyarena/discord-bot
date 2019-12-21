@@ -22,6 +22,7 @@ type (
 
         // Guild Stuff
         GuildID string
+        LogsID string
         JoinRoleID string
         StaffRoleID string
         BannedRoleID string
