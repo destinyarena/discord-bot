@@ -45,7 +45,7 @@ func invites(s *discordgo.Session, mr *discordgo.MessageReactionAdd) {
         return
     }
 
-    title := "Destiny Arena Faceit Invitation(s)"
+    title := "Destiny Arena Faceit Invitation"
     var mainhubs string
     var addithubs string
     send := false
