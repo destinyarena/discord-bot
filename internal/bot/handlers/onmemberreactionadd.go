@@ -77,6 +77,10 @@ func invites(s *discordgo.Session, mr *discordgo.MessageReactionAdd) {
     }
 
     if send {
+        u, err := s.User(mr.UserID)
+        if err != nil {
+            return
+        }
         channel, _ := s.UserChannelCreate(mr.UserID)
         mainhubs += "\n"
         message := mainhubs + addithubs
@@ -89,12 +93,6 @@ func invites(s *discordgo.Session, mr *discordgo.MessageReactionAdd) {
             for _, role := range roles {
                 s.GuildMemberRoleAdd(cfg.GuildID, mr.UserID, role)
             }
-
-            u, err := s.User(mr.UserID)
-            if err != nil {
-                return
-            }
-
             s.ChannelMessageSendEmbed(cfg.LogsID, &discordgo.MessageEmbed{
                 Title: "Notification",
                 Description: fmt.Sprintf("User <@%s>(`%s#%s`) requested invites", mr.UserID, u.Username, u.Discriminator),
@@ -102,7 +100,7 @@ func invites(s *discordgo.Session, mr *discordgo.MessageReactionAdd) {
         } else {
             embed := &discordgo.MessageEmbed{
                 Title: "403: Forbidden",
-                Description: fmt.Sprintf("Error sending invites to <@%s>", mr.UserID),
+                Description: fmt.Sprintf("Error sending invites to <@%s>(`%s#%s`)", mr.UserID, u.Username, u.Discriminator),
             }
 
             s.ChannelMessageSendEmbed(cfg.LogsID, embed)
