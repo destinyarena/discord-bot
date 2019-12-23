@@ -6,6 +6,7 @@ import (
     "github.com/arturoguerra/d2arena/internal/structs"
     "github.com/arturoguerra/d2arena/internal/config"
     "net/http"
+    "errors"
     "strings"
     "gopkg.in/go-playground/validator.v9"
     "fmt"
@@ -72,9 +73,14 @@ func New(s *discordgo.Session) echo.HandlerFunc {
         if _, err := s.ChannelMessageSendEmbed(channel.ID, embed); err == nil {
             s.GuildMemberRoleAdd(g.ID, payload.Discord, discord.RegistrationRoleID)
         } else {
+            u, err := s.User(payload.Discord)
+            if err != nil {
+                return errors.New("User not found")
+            }
+
             embed := &discordgo.MessageEmbed{
                 Title: "403: Forbidden",
-                Description: fmt.Sprintf("Error sending hub channel to <@%s> please contact them", payload.Discord),
+                Description: fmt.Sprintf("Error sending hub channel to <@%s>(`%s#%s`) please contact them", payload.Discord, u.Username, u.Discriminator),
             }
 
             s.ChannelMessageSendEmbed(discord.LogsID, embed)

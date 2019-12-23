@@ -90,9 +90,14 @@ func invites(s *discordgo.Session, mr *discordgo.MessageReactionAdd) {
                 s.GuildMemberRoleAdd(cfg.GuildID, mr.UserID, role)
             }
 
+            u, err := s.User(mr.UserID)
+            if err != nil {
+                return
+            }
+
             s.ChannelMessageSendEmbed(cfg.LogsID, &discordgo.MessageEmbed{
                 Title: "Notification",
-                Description: fmt.Sprintf("User <@%s> requested invites", mr.UserID),
+                Description: fmt.Sprintf("User <@%s>(`%s#%s`) requested invites", mr.UserID, u.Username, u.Discriminator),
             })
         } else {
             embed := &discordgo.MessageEmbed{
