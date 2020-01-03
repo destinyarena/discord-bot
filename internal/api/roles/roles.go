@@ -65,19 +65,29 @@ func New(s *discordgo.Session) echo.HandlerFunc {
             return c.String(http.StatusBadRequest, "Error invalid payload")
         }
 
-        //sendInvites(s, g.ID, payload, discord)
-        channel, _ := s.UserChannelCreate(payload.Discord)
+        u, err := s.User(payload.Discord)
+        if err != nil {
+            return errors.New("User not found")
+        }
+
+        channel, err := s.UserChannelCreate(payload.Discord)
+        if err != nil {
+            return errors.New("Channel not found")
+        }
+
         embed := &discordgo.MessageEmbed{
             Description: "Please click this [link](https://discordapp.com/channels/650109209610027034/657733307353792524/657760138282795018) to get your hub invites!",
         }
+
         if _, err := s.ChannelMessageSendEmbed(channel.ID, embed); err == nil {
             s.GuildMemberRoleAdd(g.ID, payload.Discord, discord.RegistrationRoleID)
-        } else {
-            u, err := s.User(payload.Discord)
-            if err != nil {
-                return errors.New("User not found")
+            embed := &discordgo.MessageEmbed{
+                Title: "Hub invite link",
+                Description: fmt.Sprintf("Sent hubs channel link to <@%s>(`%s#%s`)", payload.Discord, u.Username, u.Discriminator),
             }
 
+            s.ChannelMessageSendEmbed(discord.LogsID, embed)
+        } else {
             embed := &discordgo.MessageEmbed{
                 Title: "403: Forbidden",
                 Description: fmt.Sprintf("Error sending hub channel to <@%s>(`%s#%s`) please contact them", payload.Discord, u.Username, u.Discriminator),
@@ -87,4 +97,5 @@ func New(s *discordgo.Session) echo.HandlerFunc {
         }
 
         return c.String(http.StatusOK, "Roles have been assigned")
-    }}
+    }
+}
