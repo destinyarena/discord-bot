@@ -3,12 +3,23 @@ package handlers
 import (
     "github.com/arturoguerra/d2arena/internal/structs"
     "github.com/arturoguerra/d2arena/internal/config"
+    "gopkg.in/go-playground/validator.v9"
     "github.com/bwmarrin/discordgo"
+    "encoding/json"
+    "io/ioutil"
+    "net/http"
     "errors"
     "fmt"
 )
 
 var cfg *structs.Discord
+
+type Profile struct {
+    DiscordID string `json:"discordid" validate:"required"`
+    SteamID string `json:"steamid" validate:"required"`
+    FaceitGuid string `json:"faceitguid" validate:"required"`
+    FaceitName string `json:"faceitname" valitate:"required"`
+}
 
 func init() {
     cfg = config.LoadDiscord()
@@ -34,6 +45,77 @@ func getMember(g *discordgo.Guild, uid string) (*discordgo.Member, error) {
     return nil, errors.New("Not found")
 }
 
+
+func fetchDB(id string) (*Profile, error) {
+    base := fmt.Sprintf("https://destinyarena.fireteamsupport.net/infoexchange.php?key=2YHSbPt5GJ9Uupgk&d=true&discordid=%s", id)
+
+    client := new(http.Client)
+    req, _ := http.NewRequest("GET", base, nil)
+    resp, err := client.Do(req)
+
+    if err != nil {
+        return nil, err
+    }
+
+    rawbody, _ := ioutil.ReadAll(resp.Body)
+    var body Profile
+    json.Unmarshal([]byte(rawbody), &body)
+    v := validator.New()
+    if err = v.Struct(body); err != nil {
+        return nil, err
+    }
+
+    return &body, nil
+}
+
+type GameBody struct {
+    SkillLevel int `json:"skill_level" validate:"required"`
+}
+
+type ReqBody struct {
+    Games map[string]GameBody `json:"games" validate:"required"`
+}
+
+func getFaceitLevel(userid string) int {
+    profile, err := fetchDB(userid)
+    if err != nil {
+        fmt.Println("Error fetching profile")
+        return 0
+    }
+
+    // FaceitGuid
+    config := config.LoadFaceit()
+    client := new(http.Client)
+    url := "https://open.faceit.com/data/v4/players/" + profile.FaceitGuid
+    req, _ := http.NewRequest("GET", url, nil)
+    req.Header.Add("Authorization", "Bearer " + config.ApiToken)
+    req.Header.Add("Content-Type", "application/json")
+    resp, err := client.Do(req)
+    defer resp.Body.Close()
+
+    if err != nil || resp.StatusCode != 200 {
+        fmt.Println("Error fetching faceit profile")
+        return 0
+    }
+
+    rawbody, _ := ioutil.ReadAll(resp.Body)
+
+    var body ReqBody
+    json.Unmarshal([]byte(rawbody), &body)
+    v := validator.New()
+    if err = v.Struct(body); err != nil {
+        fmt.Println(err)
+        return 0
+    }
+
+    if val, ok := body.Games["destiny2"]; ok {
+        fmt.Println(val)
+        return val.SkillLevel
+    }
+
+    return 0
+}
+
 func invites(s *discordgo.Session, mr *discordgo.MessageReactionAdd) {
     guild, err := s.Guild(cfg.GuildID)
     if err != nil {
@@ -51,26 +133,30 @@ func invites(s *discordgo.Session, mr *discordgo.MessageReactionAdd) {
     send := false
     var roles []string
 
+    faceitlevel := getFaceitLevel(mr.UserID)
+
     for _, reaction := range cfg.Reactions {
         if reaction.EmojiID == mr.Emoji.APIName() || mr.Emoji.APIName() == cfg.InvitesAutoEmojiID {
             if checkRole(member.Roles, reaction.RoleID) {
-                if link, _ := getInvite(reaction.HubID); link != "" {
-                    roles = append(roles, reaction.RoleID)
-                    if reaction.Main {
-                        if mainhubs == "" {
-                            mainhubs += "Main Hubs:\n"
+                if faceitlevel >= 0 {
+                    if link, _ := getInvite(reaction.HubID); link != "" {
+                        roles = append(roles, reaction.RoleID)
+                        if reaction.Main {
+                            if mainhubs == "" {
+                                mainhubs += "Main Hubs:\n"
+                            }
+
+                            mainhubs += fmt.Sprintf("[%s](%s)\n", reaction.Format, link)
+                        } else {
+                            if addithubs == "" {
+                                addithubs += "Additional Hubs:\n"
+                            }
+
+                            addithubs += fmt.Sprintf("[%s](%s)\n", reaction.Format, link)
                         }
 
-                        mainhubs += fmt.Sprintf("[%s](%s)\n", reaction.Format, link)
-                    } else {
-                        if addithubs == "" {
-                            addithubs += "Additional Hubs:\n"
-                        }
-
-                        addithubs += fmt.Sprintf("[%s](%s)\n", reaction.Format, link)
+                        send = true
                     }
-
-                    send = true
                 }
             }
         }
