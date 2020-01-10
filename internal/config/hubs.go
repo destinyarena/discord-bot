@@ -21,7 +21,7 @@ func LoadHubs() []*structs.Hub {
         os.Getenv("HUB_2_ROLE_ID"),
         os.Getenv("HUB_2_EMOJI_ID"),
         true,
-        5,
+        4,
     }
 
     div3 := &structs.Hub{
