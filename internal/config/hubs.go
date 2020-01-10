@@ -38,7 +38,7 @@ func LoadHubs() []*structs.Hub {
         os.Getenv("HUB_DUEL_ID"),
         os.Getenv("HUB_DUEL_ROLE_ID"),
         os.Getenv("HUB_DUEL_EMOJI_ID"),
-        true,
+        false,
         0,
     }
 
@@ -47,7 +47,7 @@ func LoadHubs() []*structs.Hub {
         os.Getenv("HUB_DOUBLES_ID"),
         os.Getenv("HUB_DOUBLES_ROLE_ID"),
         os.Getenv("HUB_DOUBLES_EMOJI_ID"),
-        true,
+        false,
         0,
     }
 
@@ -56,7 +56,7 @@ func LoadHubs() []*structs.Hub {
         os.Getenv("HUB_STADIUM_ID"),
         os.Getenv("HUB_STADIUM_ROLE_ID"),
         os.Getenv("HUB_STADIUM_EMOJI_ID"),
-        true,
+        false,
         0,
     }
 
