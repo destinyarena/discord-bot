@@ -135,24 +135,24 @@ func invites(s *discordgo.Session, mr *discordgo.MessageReactionAdd) {
 
     faceitlevel := getFaceitLevel(mr.UserID)
 
-    for _, reaction := range cfg.Reactions {
-        if reaction.EmojiID == mr.Emoji.APIName() || mr.Emoji.APIName() == cfg.InvitesAutoEmojiID {
-            if checkRole(member.Roles, reaction.RoleID) {
-                if faceitlevel >= reaction.SkillLvl {
-                    if link, _ := getInvite(reaction.HubID); link != "" {
-                        roles = append(roles, reaction.RoleID)
-                        if reaction.Main {
+    for _, hub := range cfg.Hubs {
+        if hub.EmojiID == mr.Emoji.APIName() || mr.Emoji.APIName() == cfg.InvitesAutoEmojiID {
+            if checkRole(member.Roles, hub.RoleID) {
+                if faceitlevel >= hub.SkillLvl {
+                    if link, _ := getInvite(hub.HubID); link != "" {
+                        roles = append(roles, hub.RoleID)
+                        if hub.Main {
                             if mainhubs == "" {
                                 mainhubs += "Main Hubs:\n"
                             }
 
-                            mainhubs += fmt.Sprintf("[%s](%s)\n", reaction.Format, link)
+                            mainhubs += fmt.Sprintf("[%s](%s)\n", hub.Format, link)
                         } else {
                             if addithubs == "" {
                                 addithubs += "Additional Hubs:\n"
                             }
 
-                            addithubs += fmt.Sprintf("[%s](%s)\n", reaction.Format, link)
+                            addithubs += fmt.Sprintf("[%s](%s)\n", hub.Format, link)
                         }
 
                         send = true

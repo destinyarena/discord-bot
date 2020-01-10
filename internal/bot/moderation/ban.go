@@ -67,14 +67,12 @@ func DiscordBan (ctx *router.Context, uid, reason string) error {
 
 func FaceitBan (id string, reason string) []error {
     faceit := config.LoadFaceit()
-    gen := faceit.GeneralDiv
-    doubles := faceit.DoublesDiv
-    hubs := [2]string{gen, doubles}
+    hubs := config.LoadHubs()
     errs := []error{}
     for _, hub := range hubs {
-        url := "https://api.faceit.com/hubs/v1/hub/" + hub + "/ban/" + id
+        url := "https://api.faceit.com/hubs/v1/hub/" + hub.HubID + "/ban/" + id
         payload := BanPayload{
-            hub,
+            hub.HubID,
             id,
             reason,
         }

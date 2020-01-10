@@ -24,4 +24,8 @@ async def on_ready():
         print(role.name)
         print(role.id)
 
+@client.event
+async def on_reaction_add(reaction, user):
+        print(reaction.emoji)
+
 client.run(token)

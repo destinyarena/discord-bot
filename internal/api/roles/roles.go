@@ -13,11 +13,11 @@ import (
 )
 
 
-var hubs []*structs.DiscordReaction
+var hubs []*structs.Hub
 
 func init() {
     discord := config.LoadDiscord()
-    hubs = discord.Reactions
+    hubs = discord.Hubs
 }
 
 func checkHub(hubid string, guid string) bool {

@@ -11,8 +11,6 @@ type (
     Faceit struct {
         UserToken string
         ApiToken string
-        GeneralDiv string
-        DoublesDiv string
     }
 
     Discord struct {
@@ -34,10 +32,10 @@ type (
         RulesEmojiID string
         InvitesMessageID string
         InvitesAutoEmojiID string
-        Reactions []*DiscordReaction
+        Hubs []*Hub
     }
 
-    DiscordReaction struct {
+    Hub struct {
         Format string
         HubID string
         RoleID string

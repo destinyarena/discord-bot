@@ -5,37 +5,6 @@ import (
     "os"
 )
 
-func loadReactions() []*structs.DiscordReaction {
-    arenaformat := os.Getenv("DIVISION_ARENA_FORMAT")
-    arenaid := os.Getenv("DIVISION_ARENA_ID")
-    arenaroleid := os.Getenv("DISCORD_DIVISION_ARENA_ROLE_ID")
-    arenaemojiid := os.Getenv("DISCORD_DIVISION_ARENA_EMOJI_ID")
-
-    doublesformat := os.Getenv("DIVISION_DOUBLES_FORMAT")
-    doublesid := os.Getenv("DIVISION_DOUBLES_ID")
-    doublesroleid := os.Getenv("DISCORD_DIVISION_DOUBLES_ROLE_ID")
-    doublesemojiid := os.Getenv("DISCORD_DIVISION_DOUBLES_EMOJI_ID")
-
-    return []*structs.DiscordReaction{
-        &structs.DiscordReaction{
-            arenaformat,
-            arenaid,
-            arenaroleid,
-            arenaemojiid,
-            true,
-            0,
-        },
-        &structs.DiscordReaction{
-            doublesformat,
-            doublesid,
-            doublesroleid,
-            doublesemojiid,
-            false,
-            0,
-        },
-    }
-}
-
 func LoadDiscord() *structs.Discord {
     prefix := os.Getenv("DISCORD_PREFIX")
     token := os.Getenv("DISCORD_TOKEN")
@@ -56,7 +25,7 @@ func LoadDiscord() *structs.Discord {
 
     logsid := os.Getenv("DISCORD_LOGS_CHANNEL")
 
-    reactions := loadReactions()
+    hubs := LoadHubs()
     return &structs.Discord{
         Prefix: prefix,
         Token: token,
@@ -69,7 +38,7 @@ func LoadDiscord() *structs.Discord {
         RulesEmojiID: rulesemojiid,
         InvitesMessageID: invitesmsgid,
         InvitesAutoEmojiID: autoemoji,
-        Reactions: reactions,
+        Hubs: hubs,
         BannedRoleID: bannedrole,
         LogsID: logsid,
     }
