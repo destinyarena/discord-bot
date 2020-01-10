@@ -23,7 +23,7 @@ func loadReactions() []*structs.DiscordReaction {
             arenaroleid,
             arenaemojiid,
             true,
-            1,
+            0,
         },
         &structs.DiscordReaction{
             doublesformat,
@@ -31,7 +31,7 @@ func loadReactions() []*structs.DiscordReaction {
             doublesroleid,
             doublesemojiid,
             false,
-            1,
+            0,
         },
     }
 }
