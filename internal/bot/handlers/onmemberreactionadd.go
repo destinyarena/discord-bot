@@ -141,7 +141,7 @@ func invites(s *discordgo.Session, mr *discordgo.MessageReactionAdd) {
                 fmt.Println(hub)
                 fmt.Println(hub.SkillLvl)
                 fmt.Println(faceitlevel)
-                fmt.Println('---------------')
+                fmt.Println("---------------")
                 if faceitlevel >= hub.SkillLvl {
                     if link, _ := getInvite(hub.HubID); link != "" {
                         roles = append(roles, hub.RoleID)
