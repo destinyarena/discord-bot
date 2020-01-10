@@ -138,10 +138,6 @@ func invites(s *discordgo.Session, mr *discordgo.MessageReactionAdd) {
     for _, hub := range cfg.Hubs {
         if hub.EmojiID == mr.Emoji.APIName() || mr.Emoji.APIName() == cfg.InvitesAutoEmojiID {
             if checkRole(member.Roles, hub.RoleID) {
-                fmt.Println(hub)
-                fmt.Println(hub.SkillLvl)
-                fmt.Println(faceitlevel)
-                fmt.Println("---------------")
                 if faceitlevel >= hub.SkillLvl {
                     if link, _ := getInvite(hub.HubID); link != "" {
                         roles = append(roles, hub.RoleID)
@@ -211,9 +207,6 @@ func rules(s *discordgo.Session, mr *discordgo.MessageReactionAdd) {
 
 
 func OnMessageReactionAdd(s *discordgo.Session, mr *discordgo.MessageReactionAdd) {
-    fmt.Println(mr.Emoji.APIName())
-    fmt.Println(cfg.InvitesAutoEmojiID)
-    fmt.Println(mr.Emoji.APIName() == cfg.InvitesAutoEmojiID)
     if cfg.InvitesMessageID == mr.MessageID {
         invites(s, mr)
     } else if cfg.RulesMessageID == mr.MessageID {
