@@ -76,7 +76,7 @@ func New(s *discordgo.Session) echo.HandlerFunc {
         }
 
         embed := &discordgo.MessageEmbed{
-            Description: "Please click this [link](https://discordapp.com/channels/650109209610027034/657733307353792524/657760138282795018) to get your hub invites!",
+            Description: "Please click this [link](https://discordapp.com/channels/650109209610027034/657733307353792524/665277347909599232) to get your hub invites!",
         }
 
         if _, err := s.ChannelMessageSendEmbed(channel.ID, embed); err == nil {
