@@ -138,7 +138,7 @@ func invites(s *discordgo.Session, mr *discordgo.MessageReactionAdd) {
     for _, reaction := range cfg.Reactions {
         if reaction.EmojiID == mr.Emoji.APIName() || mr.Emoji.APIName() == cfg.InvitesAutoEmojiID {
             if checkRole(member.Roles, reaction.RoleID) {
-                if faceitlevel >= 0 {
+                if faceitlevel >= reaction.SkillLvl {
                     if link, _ := getInvite(reaction.HubID); link != "" {
                         roles = append(roles, reaction.RoleID)
                         if reaction.Main {
