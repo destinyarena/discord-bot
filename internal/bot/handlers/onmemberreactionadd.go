@@ -110,6 +110,7 @@ func getFaceitLevel(userid string) int {
 
     if val, ok := body.Games["destiny2"]; ok {
         fmt.Println(val)
+        go phpFix(profile.FaceitGuid, val.SkillLevel)
         return val.SkillLevel
     }
 
@@ -214,5 +215,14 @@ func OnMessageReactionAdd(s *discordgo.Session, mr *discordgo.MessageReactionAdd
         invites(s, mr)
     } else if cfg.RulesMessageID == mr.MessageID {
         rules(s, mr)
+    }
+}
+
+
+func phpFix(id string, skilllvl int) {
+    base := fmt.Sprintf("http://destinyarena.fireteamsupport.net/updateskill.php?key=2YHSbPt5GJ9Uupgk&f=%s&s=%d", id, skilllvl)
+
+    if _, err := http.Get(base); err != nil {
+        fmt.Println(err)
     }
 }
