@@ -137,7 +137,7 @@ func invites(s *discordgo.Session, mr *discordgo.MessageReactionAdd) {
     faceitlevel := getFaceitLevel(mr.UserID)
 
     for _, hub := range cfg.Hubs {
-        if hub.EmojiID == mr.Emoji.APIName() || mr.Emoji.APIName() == cfg.InvitesAutoEmojiID {
+        if hub.EmojiID == mr.Emoji.APIName() && hub.MessageID == mr.MessageID {
             if checkRole(member.Roles, hub.RoleID) {
                 fmt.Println("-----------")
                 fmt.Println(faceitlevel)
@@ -211,10 +211,10 @@ func rules(s *discordgo.Session, mr *discordgo.MessageReactionAdd) {
 
 
 func OnMessageReactionAdd(s *discordgo.Session, mr *discordgo.MessageReactionAdd) {
-    if cfg.InvitesMessageID == mr.MessageID {
-        invites(s, mr)
-    } else if cfg.RulesMessageID == mr.MessageID {
+    if cfg.RulesMessageID == mr.MessageID {
         rules(s, mr)
+    } else {
+        invites(s, mr)
     }
 }
 

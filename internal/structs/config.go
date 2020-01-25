@@ -30,8 +30,6 @@ type (
         RulesRoleID string
         RulesMessageID string
         RulesEmojiID string
-        InvitesMessageID string
-        InvitesAutoEmojiID string
         Hubs []*Hub
     }
 
@@ -40,6 +38,7 @@ type (
         HubID string
         RoleID string
         EmojiID string
+        MessageID string
         Main bool
         SkillLvl int
     }
