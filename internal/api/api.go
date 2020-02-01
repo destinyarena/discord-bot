@@ -10,6 +10,6 @@ import (
 
 
 func New(e *echo.Echo, s *discordgo.Session) {
-    e.POST("/roles", roles.New(s), mdlware.Auth);
+    e.POST("/roles/:id", roles.New(s), mdlware.Auth);
     e.POST("/bans", bans.New(s), mdlware.Auth);
 }

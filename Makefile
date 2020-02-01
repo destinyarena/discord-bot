@@ -1,4 +1,4 @@
-.PHONY: all clean build install uninstall reinstall docker docker-build docker-push
+.PHONY: all clean build docker docker-build docker-push
 
 GORUN = go run
 GOBUILD = go build
@@ -9,15 +9,8 @@ clean:
 	rm -rf bin
 
 build: clean
-	$(GOBUILD) -o bin/d2arena cmd/bot/main.go
+	$(GOBUILD) -o bin/bot cmd/bot/main.go
 
-install:
-	install -m0755 bin/d2arena /usr/bin/d2arena
-
-uninstall:
-	rm -rf /usr/bin/d2arena
-
-reinstall: uninstall install
 
 
 docker-build:

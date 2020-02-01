@@ -1,7 +1,7 @@
 package handlers
 
 import (
-    "github.com/arturoguerra/d2arena/internal/structs"
+    //"github.com/arturoguerra/d2arena/internal/structs"
     "github.com/arturoguerra/d2arena/internal/config"
     "gopkg.in/go-playground/validator.v9"
     "github.com/bwmarrin/discordgo"
@@ -12,17 +12,14 @@ import (
     "fmt"
 )
 
-var cfg *structs.Discord
+var cfg = config.LoadDiscord()
+var apicfg = config.LoadAPIConfig()
 
 type Profile struct {
-    DiscordID string `json:"discordid" validate:"required"`
-    SteamID string `json:"steamid" validate:"required"`
-    FaceitGuid string `json:"faceitguid" validate:"required"`
-    FaceitName string `json:"faceitname" valitate:"required"`
-}
-
-func init() {
-    cfg = config.LoadDiscord()
+    Discord   string `json:"discord"   validate:"required"`
+    Bungie    string `json:"bungie"    validate:"required"`
+    Faceit    string `json:"faceit"    validate:"required"`
+    Faceitlvl int    `json:"faceitlvl" validate:"required"`
 }
 
 func checkRole(roles []string, role string) bool {
@@ -46,18 +43,23 @@ func getMember(g *discordgo.Guild, uid string) (*discordgo.Member, error) {
 }
 
 
-func fetchDB(id string) (*Profile, error) {
-    base := fmt.Sprintf("https://destinyarena.fireteamsupport.net/infoexchange.php?key=2YHSbPt5GJ9Uupgk&d=true&discordid=%s", id)
+func fetchProfile(id string) (*Profile, error) {
+    token := config.LoadAuth()
+    base := fmt.Sprintf("%s/api/users/get/%s", apicfg.BaseURL, id)
 
     client := new(http.Client)
-    req, _ := http.NewRequest("GET", base, nil)
+    req, err := http.NewRequest("GET", base, nil)
+    if err != nil {
+        return nil, err
+    }
+    req.Header.Set("Authorization", "Bearer " + token)
     resp, err := client.Do(req)
-
     if err != nil {
         return nil, err
     }
 
     rawbody, _ := ioutil.ReadAll(resp.Body)
+    fmt.Println(string(rawbody))
     var body Profile
     json.Unmarshal([]byte(rawbody), &body)
     v := validator.New()
@@ -68,54 +70,6 @@ func fetchDB(id string) (*Profile, error) {
     return &body, nil
 }
 
-type GameBody struct {
-    SkillLevel int `json:"skill_level" validate:"required"`
-}
-
-type ReqBody struct {
-    Games map[string]GameBody `json:"games" validate:"required"`
-}
-
-func getFaceitLevel(userid string) int {
-    profile, err := fetchDB(userid)
-    if err != nil {
-        fmt.Println("Error fetching profile")
-        return 0
-    }
-
-    // FaceitGuid
-    config := config.LoadFaceit()
-    client := new(http.Client)
-    url := "https://open.faceit.com/data/v4/players/" + profile.FaceitGuid
-    req, _ := http.NewRequest("GET", url, nil)
-    req.Header.Add("Authorization", "Bearer " + config.ApiToken)
-    req.Header.Add("Content-Type", "application/json")
-    resp, err := client.Do(req)
-    defer resp.Body.Close()
-
-    if err != nil || resp.StatusCode != 200 {
-        fmt.Println("Error fetching faceit profile")
-        return 0
-    }
-
-    rawbody, _ := ioutil.ReadAll(resp.Body)
-
-    var body ReqBody
-    json.Unmarshal([]byte(rawbody), &body)
-    v := validator.New()
-    if err = v.Struct(body); err != nil {
-        fmt.Println(err)
-        return 0
-    }
-
-    if val, ok := body.Games["destiny2"]; ok {
-        fmt.Println(val)
-        go phpFix(profile.FaceitGuid, val.SkillLevel)
-        return val.SkillLevel
-    }
-
-    return 0
-}
 
 func invites(s *discordgo.Session, mr *discordgo.MessageReactionAdd) {
     guild, err := s.Guild(cfg.GuildID)
@@ -134,7 +88,15 @@ func invites(s *discordgo.Session, mr *discordgo.MessageReactionAdd) {
     send := false
     var roles []string
 
-    faceitlevel := getFaceitLevel(mr.UserID)
+    profile, err := fetchProfile(mr.UserID)
+    if err != nil {
+        fmt.Println(err)
+        profile = &Profile{
+            Faceitlvl: 0,
+        }
+    }
+
+    faceitlevel := profile.Faceitlvl
 
     for _, hub := range cfg.Hubs {
         if hub.EmojiID == mr.Emoji.APIName() && hub.MessageID == mr.MessageID {

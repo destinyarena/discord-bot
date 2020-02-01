@@ -14,7 +14,7 @@ func Auth(next echo.HandlerFunc) echo.HandlerFunc {
         }
 
         auth := c.Request().Header.Get("Authorization")
-        if auth != "Basic " + token {
+        if auth != "Bearer " + token {
             return c.String(401, "Unauthorized access")
         } else {
             fmt.Println("Front-end Authenticated with API")

@@ -7,6 +7,6 @@ RUN make build
 
 FROM alpine:latest
 WORKDIR /app
-COPY --from=builder /build/bin/d2arena /app
+COPY --from=builder /build/bin/bot /app
 
-CMD ["./d2arena"]
+CMD ["./bot"]
