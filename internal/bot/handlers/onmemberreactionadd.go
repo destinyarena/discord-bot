@@ -59,7 +59,6 @@ func fetchProfile(id string) (*Profile, error) {
     }
 
     rawbody, _ := ioutil.ReadAll(resp.Body)
-    fmt.Println(string(rawbody))
     var body Profile
     json.Unmarshal([]byte(rawbody), &body)
     v := validator.New()
@@ -105,7 +104,11 @@ func invites(s *discordgo.Session, mr *discordgo.MessageReactionAdd) {
                 fmt.Println(faceitlevel)
                 fmt.Println(hub.SkillLvl)
                 if faceitlevel >= hub.SkillLvl {
-                    if link, _ := getInvite(hub.HubID); link != "" {
+                    fmt.Println("Getting invite..")
+                    link, err := getInvite(hub.HubID)
+                    if err != nil || link == "" {
+                        fmt.Println(err)
+                    } else {
                         roles = append(roles, hub.RoleID)
                         if hub.Main {
                             if mainhubs == "" {

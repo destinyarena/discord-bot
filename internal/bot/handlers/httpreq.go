@@ -1,6 +1,7 @@
 package handlers
 
 import (
+    "fmt"
     "net/http"
     "github.com/arturoguerra/d2arena/internal/config"
     "github.com/arturoguerra/d2arena/internal/structs"
@@ -11,6 +12,7 @@ import (
 )
 
 func getInvite(hubid string) (string, error) {
+    fmt.Println(hubid)
     reqBody, _ := json.Marshal(structs.ReqBody{
         hubid,
         "hub",
@@ -22,7 +24,7 @@ func getInvite(hubid string) (string, error) {
     client := &http.Client{}
 
     fitcfg := config.LoadFaceit()
-
+    fmt.Println(fitcfg.UserToken)
     req, _ := http.NewRequest("POST", "https://api.faceit.com/invitations/v1/invite", bytes.NewBuffer(reqBody))
     req.Header.Set("Content-Type", "application/json")
     req.Header.Set("Authorization", "Bearer " + fitcfg.UserToken)
@@ -33,10 +35,17 @@ func getInvite(hubid string) (string, error) {
         return "", err
     }
 
+    if resp.StatusCode != 200 && resp.StatusCode != 201 {
+        err = fmt.Errorf("Server response code: %d", resp.StatusCode)
+        return "", err
+    }
+
     rawbody, err := ioutil.ReadAll(resp.Body)
     if err != nil {
         return "", err
     }
+
+    fmt.Sprintf(string(rawbody))
 
     var body structs.ResponseBody
     json.Unmarshal([]byte(rawbody), &body)
