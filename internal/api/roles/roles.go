@@ -30,7 +30,9 @@ func New(s *discordgo.Session) echo.HandlerFunc {
 
         channel, err := s.UserChannelCreate(uid)
         if err != nil {
-            return errors.New("Channel not found")
+            err = errors.New("Channel not found")
+            fmt.Println(err)
+            return err
         }
 
         embed := &discordgo.MessageEmbed{
