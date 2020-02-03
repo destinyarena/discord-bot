@@ -19,18 +19,25 @@ type (
         Token string
 
         // Guild Stuff
-        GuildID string
-        LogsID string
-        JoinRoleID string
-        StaffRoleID string
+        GuildID      string
+        LogsID       string
+        JoinRoleID   string
         BannedRoleID string
+
+        // Permissions
+        Owners       []string
+        StaffRoles   []string
 
         // Reaction roles stuff
         RegistrationRoleID string
-        RulesRoleID string
-        RulesMessageID string
-        RulesEmojiID string
         Hubs []*Hub
+        ReactionRoles []*ReactionRole
+    }
+
+    ReactionRole struct {
+        EmojiID   string
+        MessageID string
+        RoleID    string
     }
 
     Hub struct {

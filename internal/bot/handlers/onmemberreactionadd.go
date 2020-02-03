@@ -42,6 +42,35 @@ func getMember(g *discordgo.Guild, uid string) (*discordgo.Member, error) {
     return nil, errors.New("Not found")
 }
 
+func getInvite(hubid string) (string, error) {
+    token := config.LoadAuth()
+    base := fmt.Sprintf("%s/api/invites/%s", apicfg.BaseURL, hubid)
+
+    client := new(http.Client)
+    req, err := http.NewRequest("GET", base, nil)
+    if err != nil {
+        return "", err
+    }
+
+    req.Header.Set("Authorization", "Bearer " + token)
+
+    resp, err := client.Do(req)
+    if err != nil {
+        return "", err
+    }
+
+    if resp.StatusCode != 200 && resp.StatusCode != 201 {
+        err = fmt.Errorf("Server returned code: %d", resp.StatusCode)
+        return "", err
+    }
+
+    body, err := ioutil.ReadAll(resp.Body)
+    if err != nil {
+        return "", err
+    }
+
+    return string(body), nil
+}
 
 func fetchProfile(id string) (*Profile, error) {
     token := config.LoadAuth()
@@ -58,7 +87,16 @@ func fetchProfile(id string) (*Profile, error) {
         return nil, err
     }
 
-    rawbody, _ := ioutil.ReadAll(resp.Body)
+    if resp.StatusCode != 200 && resp.StatusCode != 201 {
+        err = fmt.Errorf("Server returned code: %d", resp.StatusCode)
+        return nil, err
+    }
+
+    rawbody, err := ioutil.ReadAll(resp.Body)
+    if err != nil {
+        return nil, err
+    }
+
     var body Profile
     json.Unmarshal([]byte(rawbody), &body)
     v := validator.New()
@@ -71,7 +109,19 @@ func fetchProfile(id string) (*Profile, error) {
 
 
 func invites(s *discordgo.Session, mr *discordgo.MessageReactionAdd) {
+    title := "Destiny Arena Faceit Invitation"
+
     guild, err := s.Guild(cfg.GuildID)
+    if err != nil {
+        return
+    }
+
+    u, err := s.User(mr.UserID)
+    if err != nil {
+        return
+    }
+
+    channel, err := s.UserChannelCreate(mr.UserID)
     if err != nil {
         return
     }
@@ -81,29 +131,34 @@ func invites(s *discordgo.Session, mr *discordgo.MessageReactionAdd) {
         return
     }
 
-    title := "Destiny Arena Faceit Invitation"
     var mainhubs string
     var addithubs string
     send := false
     var roles []string
+    var profile *Profile
 
-    profile, err := fetchProfile(mr.UserID)
-    if err != nil {
-        fmt.Println(err)
-        profile = &Profile{
-            Faceitlvl: 0,
-        }
-    }
-
-    faceitlevel := profile.Faceitlvl
 
     for _, hub := range cfg.Hubs {
         if hub.EmojiID == mr.Emoji.APIName() && hub.MessageID == mr.MessageID {
+            if profile == nil {
+                profile, err = fetchProfile(mr.UserID)
+                if err != nil {
+                    fmt.Println(err)
+                    embed := &discordgo.MessageEmbed{
+                        Title: title,
+                        Description: "Looks like you haven't registered please go do that before requesting invites",
+                    }
+
+                    s.ChannelMessageSendEmbed(channel.ID, embed)
+                    return
+                }
+            }
+
             if checkRole(member.Roles, hub.RoleID) {
                 fmt.Println("-----------")
-                fmt.Println(faceitlevel)
+                fmt.Println(profile.Faceitlvl)
                 fmt.Println(hub.SkillLvl)
-                if faceitlevel >= hub.SkillLvl {
+                if profile.Faceitlvl >= hub.SkillLvl {
                     fmt.Println("Getting invite..")
                     link, err := getInvite(hub.HubID)
                     if err != nil || link == "" {
@@ -132,11 +187,6 @@ func invites(s *discordgo.Session, mr *discordgo.MessageReactionAdd) {
     }
 
     if send {
-        u, err := s.User(mr.UserID)
-        if err != nil {
-            return
-        }
-        channel, _ := s.UserChannelCreate(mr.UserID)
         mainhubs += "\n"
         message := mainhubs + addithubs
         embed := &discordgo.MessageEmbed{
@@ -163,31 +213,7 @@ func invites(s *discordgo.Session, mr *discordgo.MessageReactionAdd) {
     }
 }
 
-func rules(s *discordgo.Session, mr *discordgo.MessageReactionAdd) {
-    if mr.Emoji.APIName() != cfg.RulesEmojiID {
-        return
-    }
-
-    s.GuildMemberRoleAdd(cfg.GuildID, mr.UserID, cfg.RulesRoleID)
-
-
-
-}
-
-
 func OnMessageReactionAdd(s *discordgo.Session, mr *discordgo.MessageReactionAdd) {
-    if cfg.RulesMessageID == mr.MessageID {
-        rules(s, mr)
-    } else {
-        invites(s, mr)
-    }
-}
-
-
-func phpFix(id string, skilllvl int) {
-    base := fmt.Sprintf("http://destinyarena.fireteamsupport.net/updateskill.php?key=2YHSbPt5GJ9Uupgk&f=%s&s=%d", id, skilllvl)
-
-    if _, err := http.Get(base); err != nil {
-        fmt.Println(err)
-    }
+    invites(s, mr)
+    reactionroles(s, mr.MessageReaction, true)
 }
