@@ -1,7 +1,12 @@
 package handlers
 
 import (
+    "context"
+    pb "github.com/arturoguerra/d2arena/pkg/faceit/proto"
     //"github.com/arturoguerra/d2arena/internal/structs"
+    "google.golang.org/grpc"
+
+//    "github.com/arturoguerra/d2arena/pkg/faceit"
     "github.com/arturoguerra/d2arena/internal/config"
     "gopkg.in/go-playground/validator.v9"
     "github.com/bwmarrin/discordgo"
@@ -42,37 +47,59 @@ func getMember(g *discordgo.Guild, uid string) (*discordgo.Member, error) {
     return nil, errors.New("Not found")
 }
 
+func testrpc(id string) {
+    grpcfg := config.LoadgRPC()
+    address := fmt.Sprintf("%s:%s", grpcfg.FaceitHost, grpcfg.FaceitPort)
+    conn, err := grpc.Dial(address, grpc.WithInsecure(), grpc.WithBlock())
+    if err != nil {
+        fmt.Println(err)
+        return
+    }
+    defer conn.Close()
+    fmt.Println("Connected again")
+
+    c := pb.NewFaceitClient(conn)
+
+    r, err := c.GetProfile(context.Background(), &pb.ProfileRequest{
+        Guid: id,
+    })
+
+    if err != nil {
+        fmt.Println(err)
+        return
+    }
+
+    fmt.Printf("%s %s %s", r.GetGuid(), r.GetSkilllvl(), r.GetUsername())
+}
+
+
 func getInvite(hubid string) (string, error) {
-    token := config.LoadAuth()
-    base := fmt.Sprintf("%s/api/invites/%s", apicfg.BaseURL, hubid)
-
-    client := new(http.Client)
-    req, err := http.NewRequest("GET", base, nil)
+    grpcfg := config.LoadgRPC()
+    address := fmt.Sprintf("%s:%s", grpcfg.FaceitHost, grpcfg.FaceitPort)
+    conn, err := grpc.Dial(address, grpc.WithInsecure(), grpc.WithBlock())
     if err != nil {
+        fmt.Println(err)
         return "", err
     }
+    defer conn.Close()
+    fmt.Println("Connected")
 
-    req.Header.Set("Authorization", "Bearer " + token)
+    c := pb.NewFaceitClient(conn)
 
-    resp, err := client.Do(req)
+    r, err := c.GetInvite(context.Background(), &pb.InviteRequest{
+        Hubid: hubid,
+    })
     if err != nil {
+        fmt.Println(err)
         return "", err
     }
 
-    if resp.StatusCode != 200 && resp.StatusCode != 201 {
-        err = fmt.Errorf("Server returned code: %d", resp.StatusCode)
-        return "", err
-    }
-
-    body, err := ioutil.ReadAll(resp.Body)
-    if err != nil {
-        return "", err
-    }
-
-    return string(body), nil
+    link := fmt.Sprintf("%s/%s", r.GetBase(), r.GetCode())
+    return link, nil
 }
 
 func fetchProfile(id string) (*Profile, error) {
+    go testrpc(id)
     token := config.LoadAuth()
     base := fmt.Sprintf("%s/api/users/get/%s", apicfg.BaseURL, id)
 
@@ -146,7 +173,7 @@ func invites(s *discordgo.Session, mr *discordgo.MessageReactionAdd) {
                     fmt.Println(err)
                     embed := &discordgo.MessageEmbed{
                         Title: title,
-                        Description: "Looks like you haven't registered please go do that before requesting invites",
+                        Description: "Looks like you haven't Registered yet, please do that before requesting invites.",
                     }
 
                     s.ChannelMessageSendEmbed(channel.ID, embed)
