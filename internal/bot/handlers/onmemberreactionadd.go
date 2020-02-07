@@ -2,7 +2,7 @@ package handlers
 
 import (
     "context"
-    profiles "github.com/arturoguerra/d2arena/pkg/profiles/proto"
+    profiles "github.com/arturoguerra/d2arena/pkg/profiles"
     faceit "github.com/arturoguerra/d2arena/pkg/faceit"
     "google.golang.org/grpc"
 
@@ -46,20 +46,20 @@ func getMember(g *discordgo.Guild, uid string) (*discordgo.Member, error) {
 func getInvite(hubid string) (string, error) {
     grpcfg := config.LoadgRPC()
     address := fmt.Sprintf("%s:%s", grpcfg.FaceitHost, grpcfg.FaceitPort)
-    conn, err := grpc.Dial(address, grpc.WithInsecure(), grpc.WithBlock())
+    conn, err := grpc.Dial(address, grpc.WithInsecure())
     if err != nil {
-        fmt.Println(err)
+        log.Error(err)
         return "", err
     }
     defer conn.Close()
 
     c := faceit.NewFaceitClient(conn)
-    fmt.Println("Fetching Invites")
+    log.Infoln("Fetching Invites")
     r, err := c.GetInvite(context.Background(), &faceit.InviteRequest{
         Hubid: hubid,
     })
     if err != nil {
-        fmt.Println(err)
+        log.Error(err)
         return "", err
     }
 
@@ -70,41 +70,41 @@ func getInvite(hubid string) (string, error) {
 func fetchProfile(id string) (*Profile, error) {
     grpcfg := config.LoadgRPC()
     address := fmt.Sprintf("%s:%s", grpcfg.ProfilesHost, grpcfg.ProfilesPort)
-    conn, err := grpc.Dial(address, grpc.WithInsecure(), grpc.WithBlock())
+    conn, err := grpc.Dial(address, grpc.WithInsecure())
     if err != nil {
-        fmt.Println(err)
+        log.Error(err)
         return nil, err
     }
 
     defer conn.Close()
 
-    c := profiles.NewUsersClient(conn)
-    fmt.Println("Fetching database profile")
+    c := profiles.NewProfilesClient(conn)
+    log.Infoln("Fetching database profile")
     r, err := c.GetProfile(context.Background(), &profiles.IdRequest{
         Id: id,
     })
 
     if err != nil {
-        fmt.Println(err)
+        log.Error(err)
         return nil, err
     }
 
     address = fmt.Sprintf("%s:%s", grpcfg.FaceitHost, grpcfg.FaceitPort)
-    conn, err = grpc.Dial(address, grpc.WithInsecure(), grpc.WithBlock())
+    conn, err = grpc.Dial(address, grpc.WithInsecure())
     if err != nil {
-        fmt.Println(err)
+        log.Error(err)
         return nil, err
     }
 
     defer conn.Close()
-    fmt.Println("Fetching faceit skill level")
+    log.Infoln("Fetching faceit skill level")
 
     f := faceit.NewFaceitClient(conn)
     rf, err := f.GetProfile(context.Background(), &faceit.ProfileRequest{
         Guid: r.GetFaceit(),
     })
     if err != nil {
-        fmt.Println(err)
+        log.Error(err)
         return nil, err
     }
 
@@ -152,7 +152,7 @@ func invites(s *discordgo.Session, mr *discordgo.MessageReactionAdd) {
             if profile == nil {
                 profile, err = fetchProfile(mr.UserID)
                 if err != nil {
-                    fmt.Println(err)
+                    log.Errorln(err)
                     embed := &discordgo.MessageEmbed{
                         Title: title,
                         Description: "Looks like you haven't Registered yet, please do that before requesting invites.",
@@ -164,14 +164,14 @@ func invites(s *discordgo.Session, mr *discordgo.MessageReactionAdd) {
             }
 
             if checkRole(member.Roles, hub.RoleID) {
-                fmt.Println("-----------")
-                fmt.Println(profile.Faceitlvl)
-                fmt.Println(hub.SkillLvl)
+                log.Infoln("-----------")
+                log.Infoln(profile.Faceitlvl)
+                log.Infoln(hub.SkillLvl)
                 if profile.Faceitlvl >= hub.SkillLvl {
-                    fmt.Println("Getting invite..")
+                    log.Infoln("Getting invite..")
                     link, err := getInvite(hub.HubID)
                     if err != nil || link == "" {
-                        fmt.Println(err)
+                        log.Error(err)
                     } else {
                         roles = append(roles, hub.RoleID)
                         if hub.Main {

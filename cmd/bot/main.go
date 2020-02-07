@@ -5,11 +5,10 @@ import (
     "github.com/arturoguerra/d2arena/internal/router"
     "github.com/arturoguerra/d2arena/internal/config"
     "github.com/arturoguerra/d2arena/internal/background"
-    //"github.com/arturoguerra/d2arena/internal/bot/commands"
+    "github.com/arturoguerra/d2arena/internal/logging"
     "github.com/arturoguerra/d2arena/internal/bot/handlers"
     "github.com/arturoguerra/d2arena/internal/bot/moderation"
     "github.com/bwmarrin/discordgo"
-    "fmt"
     "os"
     "github.com/labstack/echo"
     "os/signal"
@@ -18,13 +17,8 @@ import (
     "time"
 )
 
-func lolkillme() {
-    for true {
-        fmt.Println("HELLO ITS ME")
-    }
-}
-
 func main() {
+    log := logging.New()
     dcfg := config.LoadDiscord()
     cfg := router.NewConfig(
         dcfg.Prefix,
@@ -34,7 +28,7 @@ func main() {
     dgo, err := discordgo.New("Bot " + cfg.Token)
 
     if err != nil {
-        fmt.Println(err)
+        log.Error(err)
         return
     }
 
@@ -44,7 +38,6 @@ func main() {
         cfg,
     )
 
-    //commands.New(r)
     moderation.New(r)
 
     dgo.AddHandler(func (s *discordgo.Session, m *discordgo.MessageCreate) {
@@ -60,7 +53,7 @@ func main() {
 
     err = dgo.Open()
     if err != nil {
-        fmt.Println(err)
+        log.Error(err)
         return
     }
 
