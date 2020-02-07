@@ -2,17 +2,12 @@ package handlers
 
 import (
     "context"
-    pb "github.com/arturoguerra/d2arena/pkg/faceit/proto"
-    //"github.com/arturoguerra/d2arena/internal/structs"
+    profiles "github.com/arturoguerra/d2arena/pkg/profiles/proto"
+    faceit "github.com/arturoguerra/d2arena/pkg/faceit"
     "google.golang.org/grpc"
 
-//    "github.com/arturoguerra/d2arena/pkg/faceit"
     "github.com/arturoguerra/d2arena/internal/config"
-    "gopkg.in/go-playground/validator.v9"
     "github.com/bwmarrin/discordgo"
-    "encoding/json"
-    "io/ioutil"
-    "net/http"
     "errors"
     "fmt"
 )
@@ -47,31 +42,6 @@ func getMember(g *discordgo.Guild, uid string) (*discordgo.Member, error) {
     return nil, errors.New("Not found")
 }
 
-func testrpc(id string) {
-    grpcfg := config.LoadgRPC()
-    address := fmt.Sprintf("%s:%s", grpcfg.FaceitHost, grpcfg.FaceitPort)
-    conn, err := grpc.Dial(address, grpc.WithInsecure(), grpc.WithBlock())
-    if err != nil {
-        fmt.Println(err)
-        return
-    }
-    defer conn.Close()
-    fmt.Println("Connected again")
-
-    c := pb.NewFaceitClient(conn)
-
-    r, err := c.GetProfile(context.Background(), &pb.ProfileRequest{
-        Guid: id,
-    })
-
-    if err != nil {
-        fmt.Println(err)
-        return
-    }
-
-    fmt.Printf("%s %s %s", r.GetGuid(), r.GetSkilllvl(), r.GetUsername())
-}
-
 
 func getInvite(hubid string) (string, error) {
     grpcfg := config.LoadgRPC()
@@ -82,11 +52,10 @@ func getInvite(hubid string) (string, error) {
         return "", err
     }
     defer conn.Close()
-    fmt.Println("Connected")
 
-    c := pb.NewFaceitClient(conn)
-
-    r, err := c.GetInvite(context.Background(), &pb.InviteRequest{
+    c := faceit.NewFaceitClient(conn)
+    fmt.Println("Fetching Invites")
+    r, err := c.GetInvite(context.Background(), &faceit.InviteRequest{
         Hubid: hubid,
     })
     if err != nil {
@@ -99,39 +68,52 @@ func getInvite(hubid string) (string, error) {
 }
 
 func fetchProfile(id string) (*Profile, error) {
-    go testrpc(id)
-    token := config.LoadAuth()
-    base := fmt.Sprintf("%s/api/users/get/%s", apicfg.BaseURL, id)
-
-    client := new(http.Client)
-    req, err := http.NewRequest("GET", base, nil)
+    grpcfg := config.LoadgRPC()
+    address := fmt.Sprintf("%s:%s", grpcfg.ProfilesHost, grpcfg.ProfilesPort)
+    conn, err := grpc.Dial(address, grpc.WithInsecure(), grpc.WithBlock())
     if err != nil {
+        fmt.Println(err)
         return nil, err
     }
-    req.Header.Set("Authorization", "Bearer " + token)
-    resp, err := client.Do(req)
+
+    defer conn.Close()
+
+    c := profiles.NewUsersClient(conn)
+    fmt.Println("Fetching database profile")
+    r, err := c.GetProfile(context.Background(), &profiles.IdRequest{
+        Id: id,
+    })
+
     if err != nil {
+        fmt.Println(err)
         return nil, err
     }
 
-    if resp.StatusCode != 200 && resp.StatusCode != 201 {
-        err = fmt.Errorf("Server returned code: %d", resp.StatusCode)
-        return nil, err
-    }
-
-    rawbody, err := ioutil.ReadAll(resp.Body)
+    address = fmt.Sprintf("%s:%s", grpcfg.FaceitHost, grpcfg.FaceitPort)
+    conn, err = grpc.Dial(address, grpc.WithInsecure(), grpc.WithBlock())
     if err != nil {
+        fmt.Println(err)
         return nil, err
     }
 
-    var body Profile
-    json.Unmarshal([]byte(rawbody), &body)
-    v := validator.New()
-    if err = v.Struct(body); err != nil {
+    defer conn.Close()
+    fmt.Println("Fetching faceit skill level")
+
+    f := faceit.NewFaceitClient(conn)
+    rf, err := f.GetProfile(context.Background(), &faceit.ProfileRequest{
+        Guid: r.GetFaceit(),
+    })
+    if err != nil {
+        fmt.Println(err)
         return nil, err
     }
 
-    return &body, nil
+    return &Profile{
+        Discord: r.GetDiscord(),
+        Bungie: r.GetBungie(),
+        Faceit: r.GetFaceit(),
+        Faceitlvl: int(rf.GetSkilllvl()),
+    }, nil
 }
 
 
