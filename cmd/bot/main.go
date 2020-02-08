@@ -1,24 +1,47 @@
 package main
 
 import (
-    "github.com/arturoguerra/d2arena/internal/api"
+    "github.com/nats-io/nats.go"
     "github.com/arturoguerra/d2arena/internal/router"
     "github.com/arturoguerra/d2arena/internal/config"
+    "github.com/arturoguerra/d2arena/internal/structs"
     "github.com/arturoguerra/d2arena/internal/background"
     "github.com/arturoguerra/d2arena/internal/logging"
     "github.com/arturoguerra/d2arena/internal/bot/handlers"
     "github.com/arturoguerra/d2arena/internal/bot/moderation"
+    "github.com/arturoguerra/d2arena/internal/natsevents"
     "github.com/bwmarrin/discordgo"
     "os"
     "github.com/labstack/echo"
     "os/signal"
+    "net/http"
     "syscall"
     "context"
     "time"
 )
 
+const DISCORD_REGISTRATION = "registration"
+
 func main() {
     log := logging.New()
+
+    ncfg := config.LoadNATSConfig()
+    log.Infof("Starting NATS Client: %s", ncfg.URL)
+    nc, err := nats.Connect(ncfg.URL)
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    ec, _ := nats.NewEncodedConn(nc, nats.JSON_ENCODER)
+
+    recvRegistrationChan := make(chan *structs.NATSRegistration)
+    ec.BindRecvChan(DISCORD_REGISTRATION, recvRegistrationChan)
+
+    nchan := &structs.NATS{
+        RecvRegistration: recvRegistrationChan,
+    }
+
+    log.Infoln("Starting Discord Bot")
     dcfg := config.LoadDiscord()
     cfg := router.NewConfig(
         dcfg.Prefix,
@@ -40,6 +63,8 @@ func main() {
 
     moderation.New(r)
 
+    natsevents.New(dgo, nchan)
+
     dgo.AddHandler(func (s *discordgo.Session, m *discordgo.MessageCreate) {
         r.Handler(m)
     })
@@ -59,7 +84,10 @@ func main() {
 
     e := echo.New()
 
-    api.New(e, dgo)
+    e.GET("/", func(c echo.Context) error {
+        return c.String(http.StatusOK, "all good")
+    })
+
 
     port := os.Getenv("PORT")
     if port == "" {
