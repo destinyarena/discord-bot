@@ -8,7 +8,7 @@ import (
     "github.com/arturoguerra/d2arena/internal/background"
     "github.com/arturoguerra/d2arena/internal/logging"
     "github.com/arturoguerra/d2arena/internal/bot/handlers"
-    "github.com/arturoguerra/d2arena/internal/bot/moderation"
+    "github.com/arturoguerra/d2arena/internal/bot/commands"
     "github.com/arturoguerra/d2arena/internal/natsevents"
     "github.com/bwmarrin/discordgo"
     "os"
@@ -43,12 +43,7 @@ func main() {
 
     log.Infoln("Starting Discord Bot")
     dcfg := config.LoadDiscord()
-    cfg := router.NewConfig(
-        dcfg.Prefix,
-        dcfg.Token,
-    )
-
-    dgo, err := discordgo.New("Bot " + cfg.Token)
+    dgo, err := discordgo.New("Bot " + dcfg.Token)
 
     if err != nil {
         log.Error(err)
@@ -56,18 +51,14 @@ func main() {
     }
 
 
-    r:= router.New(
-        dgo,
-        cfg,
-    )
+    r:= router.New()
 
-    moderation.New(r)
+    commands.New(r)
 
     natsevents.New(dgo, nchan)
 
-    dgo.AddHandler(func (s *discordgo.Session, m *discordgo.MessageCreate) {
-        r.Handler(m)
-    })
+    // Command Handler
+    dgo.AddHandler(r.Handler)
 
     dgo.AddHandler(handlers.OnReady)
     dgo.AddHandler(handlers.OnMemberJoin)
