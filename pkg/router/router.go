@@ -23,13 +23,13 @@ type (
     HandlerFunc func(*Context)
 
     Route struct {
-        Routes      []*Route
-        Event       string
-        Description string
-        Handler     HandlerFunc
-        Allowed     Allowed
-        Admin       bool
-        EventHandler     func(*discordgo.Session, *discordgo.MessageCreate)
+        Routes       []*Route
+        Event        string
+        Description  string
+        Handler      HandlerFunc
+        Allowed      Allowed
+        Admin        bool
+        EventHandler func(*discordgo.Session, *discordgo.MessageCreate)
     }
 )
 
@@ -73,10 +73,8 @@ func (r *Route) Find(name string) *Route {
 }
 
 func (r *Route) Match(name string) bool {
-    for _, r := range r.Routes {
-        if r.Event == name {
-            return true
-        }
+    if r.Event == name {
+        return true
     }
 
     return false

@@ -4,13 +4,15 @@ import (
     "fmt"
     "context"
     "google.golang.org/grpc"
+    "github.com/arturoguerra/d2arena/internal/bot/utils"
     "github.com/arturoguerra/d2arena/pkg/router"
     "github.com/arturoguerra/d2arena/pkg/profiles"
 )
 
 func clear(ctx *router.Context) {
-    if len(ctx.Args) == 0 {
-        ctx.Reply("Sorry but you just provide an id to clear the user")
+    err, uid := utils.GetUID(ctx)
+    if err != nil{
+        ctx.Reply(err.Error())
         return
     }
 
@@ -26,7 +28,7 @@ func clear(ctx *router.Context) {
     c := profiles.NewProfilesClient(conn)
 
     _, err = c.RemoveProfile(context.Background(), &profiles.IdRequest{
-        Id: ctx.Args[0],
+        Id: uid,
     })
     if err != nil {
         log.Error(err)
@@ -34,5 +36,5 @@ func clear(ctx *router.Context) {
         return
     }
 
-    ctx.Reply("Delete user profile")
+    ctx.Reply("Deleted user profile")
 }

@@ -58,7 +58,7 @@ func main() {
     natsevents.New(dgo, nchan)
 
     // Command Handler
-    dgo.AddHandler(r.Handler)
+    dgo.AddHandler(r.EventHandler)
 
     dgo.AddHandler(handlers.OnReady)
     dgo.AddHandler(handlers.OnMemberJoin)
