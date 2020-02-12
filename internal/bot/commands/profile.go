@@ -158,6 +158,19 @@ func profile(ctx *router.Context) {
         Value: fmt.Sprintf("%d", fprofile.Level),
     })
 
+    log.Info("Trying to fetch user hubs")
+    hubs, err := utils.GetHubs(profile.Faceit)
+    if err != nil {
+        log.Error(err)
+    } else {
+        for _, hub := range hubs {
+            fields = append(fields, &discordgo.MessageEmbedField{
+                Name: fmt.Sprintf("Hub Name: %s", hub.Name),
+                Value: fmt.Sprintf("Hub ID: %s \n Game ID: %s", hub.Hubid, hub.GameID),
+            })
+        }
+    }
+
     embed = &discordgo.MessageEmbed{
         Title: "User Profile",
         Color: 0x019fd8,

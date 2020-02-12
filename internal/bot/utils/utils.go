@@ -1,14 +1,21 @@
 package utils
 
 import (
+    "fmt"
     "regexp"
     "strings"
     "errors"
     "github.com/arturoguerra/d2arena/internal/logging"
+    "github.com/arturoguerra/d2arena/internal/config"
     "github.com/arturoguerra/d2arena/pkg/router"
 )
 
-var log = logging.New()
+var (
+    log = logging.New()
+    grpcfg = config.LoadgRPC()
+    grpcfaceit = fmt.Sprintf("%s:%s", grpcfg.FaceitHost, grpcfg.FaceitPort)
+    grpcprofiles = fmt.Sprintf("%s:%s", grpcfg.ProfilesHost, grpcfg.ProfilesPort)
+)
 
 func GetUID(ctx *router.Context) (err error, uid string) {
     if len(ctx.Mentions) != 0 {
