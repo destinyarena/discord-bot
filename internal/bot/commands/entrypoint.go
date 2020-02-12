@@ -15,7 +15,7 @@ var (
 )
 
 func New(r *router.Route) {
-    //r.On("ban", ban, true)
+    r.On("ban", Ban, true)
     //r.On("unban", unban, true)
     r.On("clear", clear, true)
     r.On("profile", profile, true)
