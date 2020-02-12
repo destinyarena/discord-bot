@@ -75,11 +75,11 @@ func Ban(ctx *router.Context) {
         Id: profile.Discord,
     })
     if err != nil {
-        ctx.Reply("Error banning user from discord")
+        ctx.Reply("Error marking user as banned")
         return
     }
 
-    if derr := ctx.Session.GuildBanCreateWithReason(guild.ID, profile.Discord, reason, 10); derr != nil {
+    if derr := ctx.Session.GuildBanCreateWithReason(guild.ID, profile.Discord, reason, 7); derr != nil {
         log.Error(derr)
         errfields = append(errfields, &discordgo.MessageEmbedField{
             Name: "Error",
@@ -115,7 +115,7 @@ func Ban(ctx *router.Context) {
 
     embed := &discordgo.MessageEmbed{
         Title: "User Ban",
-        Description: fmt.Sprintf("<@%>", profile.Discord),
+        Description: fmt.Sprintf("<@%s>", profile.Discord),
         Fields: fields,
     }
 
