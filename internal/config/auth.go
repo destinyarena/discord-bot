@@ -1,7 +1,6 @@
 package config
 
-import "os"
-
-func LoadAuth() string {
-    return os.Getenv("AUTH_TOKEN")
+// Auth loads the auth config
+type Auth struct {
+	AuthToken string `env:"AUTH_TOKEN,required"`
 }

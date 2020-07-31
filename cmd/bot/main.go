@@ -1,106 +1,108 @@
 package main
 
 import (
-    "github.com/nats-io/nats.go"
-    "github.com/arturoguerra/d2arena/internal/router"
-    "github.com/arturoguerra/d2arena/internal/config"
-    "github.com/arturoguerra/d2arena/internal/structs"
-    "github.com/arturoguerra/d2arena/internal/background"
-    "github.com/arturoguerra/d2arena/internal/logging"
-    "github.com/arturoguerra/d2arena/internal/bot/handlers"
-    "github.com/arturoguerra/d2arena/internal/bot/commands"
-    "github.com/arturoguerra/d2arena/internal/natsevents"
-    "github.com/bwmarrin/discordgo"
-    "os"
-    "github.com/labstack/echo"
-    "os/signal"
-    "net/http"
-    "syscall"
-    "context"
-    "time"
+	"context"
+	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
+
+	"github.com/arturoguerra/d2arena/internal/background"
+	"github.com/arturoguerra/d2arena/internal/bot/commands"
+	"github.com/arturoguerra/d2arena/internal/bot/handlers"
+	"github.com/arturoguerra/d2arena/internal/config"
+	"github.com/arturoguerra/d2arena/internal/logging"
+	"github.com/arturoguerra/d2arena/internal/natsevents"
+	"github.com/arturoguerra/d2arena/internal/router"
+	"github.com/arturoguerra/d2arena/internal/structs"
+	"github.com/bwmarrin/discordgo"
+	"github.com/labstack/echo"
+	"github.com/nats-io/nats.go"
 )
 
-const DISCORD_REGISTRATION = "registration"
+const discordRegistration = "registration"
 
 func main() {
-    log := logging.New()
+	log := logging.New()
 
-    ncfg := config.LoadNATSConfig()
-    log.Infof("Starting NATS Client: %s", ncfg.URL)
-    nc, err := nats.Connect(ncfg.URL)
-    if err != nil {
-        log.Fatal(err)
-    }
+	cfg, err := config.LoadConfig()
 
-    ec, _ := nats.NewEncodedConn(nc, nats.JSON_ENCODER)
+	log.Infof("Starting NATS Client: %s", cfg.NATS.URL)
+	nc, err := nats.Connect(cfg.NATS.URL)
+	if err != nil {
+		log.Fatal(err)
+	}
 
-    recvRegistrationChan := make(chan *structs.NATSRegistration)
-    ec.BindRecvChan(DISCORD_REGISTRATION, recvRegistrationChan)
+	ec, _ := nats.NewEncodedConn(nc, nats.JSON_ENCODER)
 
-    nchan := &structs.NATS{
-        RecvRegistration: recvRegistrationChan,
-    }
+	recvRegistrationChan := make(chan *structs.NATSRegistration)
+	ec.BindRecvChan(discordRegistration, recvRegistrationChan)
 
-    log.Infoln("Starting Discord Bot")
-    dcfg := config.LoadDiscord()
-    dgo, err := discordgo.New("Bot " + dcfg.Token)
+	nchan := &structs.NATS{
+		RecvRegistration: recvRegistrationChan,
+	}
 
-    if err != nil {
-        log.Error(err)
-        return
-    }
+	log.Infoln("Starting Discord Bot")
 
+	dgo, err := discordgo.New("Bot " + cfg.Discord.Token)
+	if err != nil {
+		log.Error(err)
+		return
+	}
 
-    r:= router.New()
+	r := router.New(cfg, log)
 
-    commands.New(r)
+	commands.New(r)
 
-    natsevents.New(dgo, nchan)
+	h := handlers.New(cfg, log)
 
-    // Command Handler
-    dgo.AddHandler(r.EventHandler)
+	natsevents.New(dgo, cfg, log, nchan)
 
-    dgo.AddHandler(handlers.OnReady)
-    dgo.AddHandler(handlers.OnMemberJoin)
-    dgo.AddHandler(handlers.OnMessageReactionAdd)
-    dgo.AddHandler(handlers.OnMessageReactionRemove)
+	// Command Handler
+	dgo.AddHandler(r.EventHandler)
 
-    go background.UpdateRoles(dgo)
+	dgo.AddHandler(h.OnReady)
+	dgo.AddHandler(h.OnMemberJoin)
+	dgo.AddHandler(h.OnMessageReactionAdd)
+	dgo.AddHandler(h.OnMessageReactionRemove)
 
-    err = dgo.Open()
-    if err != nil {
-        log.Error(err)
-        return
-    }
+	b := background.New(dgo, cfg)
 
-    e := echo.New()
+	go b.UpdateRoles()
 
-    e.GET("/", func(c echo.Context) error {
-        return c.String(http.StatusOK, "all good")
-    })
+	err = dgo.Open()
+	if err != nil {
+		log.Error(err)
+		return
+	}
 
+	e := echo.New()
 
-    port := os.Getenv("PORT")
-    if port == "" {
-        port = "8080"
-    }
+	e.GET("/", func(c echo.Context) error {
+		return c.String(http.StatusOK, "all good")
+	})
 
-    go func() {
-        if err := e.Start(":" + port); err != nil {
-            e.Logger.Info("Shutting down the server!")
-        }
-    }()
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
 
+	go func() {
+		if err := e.Start(":" + port); err != nil {
+			e.Logger.Info("Shutting down the server!")
+		}
+	}()
 
-    sc := make(chan os.Signal, 1)
-    signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt, os.Kill)
-    <- sc
+	sc := make(chan os.Signal, 1)
+	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt, os.Kill)
+	<-sc
 
-    dgo.Close()
+	dgo.Close()
 
-    ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-    defer cancel()
-    if err := e.Shutdown(ctx); err != nil {
-        e.Logger.Fatal(err)
-    }
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	if err := e.Shutdown(ctx); err != nil {
+		e.Logger.Fatal(err)
+	}
 }

@@ -1,22 +1,19 @@
 package commands
 
 import (
-    "fmt"
-    "github.com/arturoguerra/d2arena/pkg/router"
-    "github.com/arturoguerra/d2arena/internal/config"
-    "github.com/arturoguerra/d2arena/internal/logging"
+	"github.com/arturoguerra/d2arena/internal/router"
 )
 
-var (
-    log    = logging.New()
-    grpcfg = config.LoadgRPC()
-    grpcfaceit   = fmt.Sprintf("%s:%s", grpcfg.FaceitHost, grpcfg.FaceitPort)
-    grpcprofiles = fmt.Sprintf("%s:%s", grpcfg.ProfilesHost, grpcfg.ProfilesPort)
-)
+// Commands holds all commands with access to parent router
+type Commands struct {
+	*router.Route
+}
 
+// New returns a new command handler
 func New(r *router.Route) {
-    r.On("ban", Ban, true)
-    //r.On("unban", unban, true)
-    r.On("clear", clear, true)
-    r.On("profile", profile, true)
+	c := &Commands{Route: r}
+	r.On("ban", c.ban, true)
+	//r.On("unban", unban, true)
+	r.On("clear", c.clear, true)
+	r.On("profile", c.profile, true)
 }

@@ -1,12 +1,10 @@
 package handlers
 
 import (
-    "github.com/bwmarrin/discordgo"
+	"github.com/bwmarrin/discordgo"
 )
 
-
-func OnReady(s *discordgo.Session, event *discordgo.Ready) {
-    //s.UpdateStatus(0, "OJ Security")
-
-    log.Infof("%s#%s", event.User.Username, event.User.Discriminator)
+func (h *handler) OnReady(s *discordgo.Session, event *discordgo.Ready) {
+	s.UpdateStatus(0, "Arena Security")
+	h.Logger.Infof("%s#%s", event.User.Username, event.User.Discriminator)
 }

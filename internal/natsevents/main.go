@@ -1,69 +1,79 @@
 package natsevents
 
 import (
-    "github.com/arturoguerra/d2arena/internal/structs"
-    "github.com/arturoguerra/d2arena/internal/config"
-    "github.com/arturoguerra/d2arena/internal/logging"
-    "github.com/bwmarrin/discordgo"
-    "fmt"
+	"fmt"
+
+	"github.com/arturoguerra/d2arena/internal/config"
+	"github.com/arturoguerra/d2arena/internal/structs"
+	"github.com/bwmarrin/discordgo"
+	"github.com/labstack/gommon/log"
+	"github.com/sirupsen/logrus"
 )
 
-var log = logging.New()
-var dcfg = config.LoadDiscord()
+func (h *handler) register(s *discordgo.Session, id string) {
+	if _, err := s.Guild(h.Config.Discord.GuildID); err != nil {
+		log.Error(err)
+		return
+	}
 
-func register(s *discordgo.Session, id string) {
-    if _, err := s.Guild(dcfg.GuildID); err != nil {
-        log.Error(err)
-        return
-    }
+	u, err := s.User(id)
+	if err != nil {
+		log.Error(err)
+		return
+	}
 
-    u, err := s.User(id)
-    if err != nil {
-        log.Error(err)
-        return
-    }
+	channel, err := s.UserChannelCreate(id)
+	if err != nil {
+		log.Error(err)
+		return
+	}
 
-    channel, err := s.UserChannelCreate(id)
-    if err != nil {
-        log.Error(err)
-        return
-    }
+	embed := &discordgo.MessageEmbed{
+		Description: "Please click this [link](https://discordapp.com/channels/650109209610027034/657733307353792524/665277347909599232) to get your hub invites!",
+	}
 
-    embed := &discordgo.MessageEmbed{
-        Description: "Please click this [link](https://discordapp.com/channels/650109209610027034/657733307353792524/665277347909599232) to get your hub invites!",
-    }
+	lembed := &discordgo.MessageEmbed{
+		Title:       "Hub invite link",
+		Description: fmt.Sprintf("Sent hubs channel link to <@%s>(`%s#%s`)", id, u.Username, u.Discriminator),
+	}
 
-    lembed := &discordgo.MessageEmbed{
-        Title: "Hub invite link",
-        Description: fmt.Sprintf("Sent hubs channel link to <@%s>(`%s#%s`)", id, u.Username, u.Discriminator),
-    }
+	//All checks are done stuff starts here
 
-    //All checks are done stuff starts here
+	if _, err := s.ChannelMessageSendEmbed(channel.ID, embed); err == nil {
+		s.GuildMemberRoleAdd(h.Config.Discord.GuildID, id, h.Config.Discord.RegistrationRoleID)
+	} else {
+		lembed = &discordgo.MessageEmbed{
+			Title:       "403: Forbidden",
+			Description: fmt.Sprintf("Error sending hub channel to <@%s>(`%s#%s`) please contact them", id, u.Username, u.Discriminator),
+		}
+	}
 
-    if _, err := s.ChannelMessageSendEmbed(channel.ID, embed); err == nil {
-        s.GuildMemberRoleAdd(dcfg.GuildID, id, dcfg.RegistrationRoleID)
-    } else {
-        lembed = &discordgo.MessageEmbed{
-            Title: "403: Forbidden",
-            Description: fmt.Sprintf("Error sending hub channel to <@%s>(`%s#%s`) please contact them", id, u.Username, u.Discriminator),
-        }
-    }
-
-    s.ChannelMessageSendEmbed(dcfg.LogsID, lembed)
+	s.ChannelMessageSendEmbed(h.Config.Discord.LogsID, lembed)
 }
 
-func registration(dg *discordgo.Session, nchan *structs.NATS) {
-    for i := range nchan.RecvRegistration {
-        if i.Id != "" {
-            log.Infof("Registering user: %s", i.Id)
-            register(dg, i.Id)
-        }
-    }
+func (h *handler) registration(dg *discordgo.Session, nchan *structs.NATS) {
+	for i := range nchan.RecvRegistration {
+		if i.Id != "" {
+			log.Infof("Registering user: %s", i.Id)
+			h.register(dg, i.Id)
+		}
+	}
 }
 
-
-func New(dg *discordgo.Session, nchan *structs.NATS) {
-    log.Infoln("Registering NATS Events")
-    go registration(dg, nchan)
+type handler struct {
+	Session *discordgo.Session
+	Config  *config.Config
+	Logger  *logrus.Logger
 }
 
+// New registeres
+func New(dg *discordgo.Session, cfg *config.Config, logger *logrus.Logger, nchan *structs.NATS) {
+	logger.Infoln("Registering NATS Events")
+	h := &handler{
+		Session: dg,
+		Config:  cfg,
+		Logger:  logger,
+	}
+
+	go h.registration(dg, nchan)
+}

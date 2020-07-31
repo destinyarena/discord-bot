@@ -1,40 +1,42 @@
 package config
 
-import (
-    "github.com/arturoguerra/d2arena/internal/structs"
-    "strings"
-    "os"
+type (
+	// Discord is the discord config
+	Discord struct {
+		// Bot Stuff
+		Prefix string `yaml:"prefix"`
+		Token  string `yaml:"token"`
+
+		// Guild Stuff
+		GuildID      string `yaml:"guild_id"`
+		LogsID       string `yaml:"logs_id"`
+		JoinRoleID   string `yaml:"join_role"`
+		BannedRoleID string `yaml:"banned_role"`
+
+		// Permissions
+		Owners     []string `yaml:"owners"`
+		StaffRoles []string `yaml:"staff_roles"`
+
+		// Reaction roles stuff
+		RegistrationRoleID string          `yaml:"registration_role"`
+		Hubs               []*Hub          `yaml:"hubs"`
+		ReactionRoles      []*ReactionRole `yaml:"reaction_roles"`
+	}
+
+	// ReactionRole is the reaction role config
+	ReactionRole struct {
+		EmojiID   string `yaml:"emoji"`
+		MessageID string `yaml:"message"`
+		RoleID    string `yaml:"role"`
+	}
+
+	// Hub is a single faceit hub
+	Hub struct {
+		Format    string `yaml:"format"`
+		HubID     string `yaml:"hub_id"`
+		RoleID    string `yaml:"role_id"`
+		EmojiID   string `yaml:"emoji_id"`
+		MessageID string `yaml:"message_id"`
+		SkillLvl  int    `yaml:"skillvl"`
+	}
 )
-
-func LoadDiscord() *structs.Discord {
-    prefix := os.Getenv("DISCORD_PREFIX")
-    token := os.Getenv("DISCORD_TOKEN")
-
-    dguild := os.Getenv("DISCORD_GUILD_ID")
-    logsid := os.Getenv("DISCORD_LOGS_CHANNEL")
-    joinrole := os.Getenv("DISCORD_JOIN_ROLE_ID")
-    bannedrole := os.Getenv("DISCORD_BANNED_ROLE_ID")
-
-    owners := strings.Split(os.Getenv("DISCORD_OWNERS"), " ")
-    staffroles := strings.Split(os.Getenv("DISCORD_STAFF_ROLES"), " ")
-
-    registrationrole := os.Getenv("DISCORD_REGISTRATION_ROLE_ID")
-
-
-    return &structs.Discord{
-        Prefix: prefix,
-        Token: token,
-
-        GuildID: dguild,
-        LogsID: logsid,
-        JoinRoleID: joinrole,
-        BannedRoleID: bannedrole,
-
-        Owners: owners,
-        StaffRoles: staffroles,
-
-        RegistrationRoleID: registrationrole,
-        Hubs: LoadHubs(),
-        ReactionRoles: LoadReactionRoles(),
-    }
-}
