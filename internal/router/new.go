@@ -6,14 +6,12 @@ import (
 	"strings"
 
 	"github.com/arturoguerra/d2arena/internal/config"
-	"github.com/arturoguerra/d2arena/internal/logging"
 	rts "github.com/arturoguerra/d2arena/pkg/router"
 	"github.com/bwmarrin/discordgo"
 	"github.com/sirupsen/logrus"
 )
 
 var prefix = "!"
-var log = logging.New()
 
 func getArgs(content string, command string) []string {
 	trimed := strings.TrimLeft(content, fmt.Sprintf("%s%s", prefix, command))
@@ -29,8 +27,8 @@ type Route struct {
 
 // New returns a new instance of a discord command router
 func New(cfg *config.Config, log *logrus.Logger) *Route {
-	r := &Route{Config: cfg, Logger: log}
-	r.EventHandler = newHandler(r)
+	r := &Route{Route: new(rts.Route), Config: cfg, Logger: log}
+	r.Route.EventHandler = r.newHandler()
 
 	return r
 }
@@ -57,7 +55,7 @@ func (r *Route) isOwner(uid string) bool {
 	return false
 }
 
-func newHandler(r *Route) func(*discordgo.Session, *discordgo.MessageCreate) {
+func (r *Route) newHandler() func(*discordgo.Session, *discordgo.MessageCreate) {
 	return func(s *discordgo.Session, m *discordgo.MessageCreate) {
 		if s.State.User.ID == m.Author.ID {
 			return
@@ -91,14 +89,14 @@ func newHandler(r *Route) func(*discordgo.Session, *discordgo.MessageCreate) {
 			allowed := true
 			if rt.Admin {
 				allowed = false
-				log.Info("Command set to admin only, checking perms..")
+				r.Logger.Info("Command set to admin only, checking perms..")
 				if m.Member != nil && r.isAllowed(m.Member) {
-					log.Info("User is set as admin")
+					r.Logger.Info("User is set as admin")
 					allowed = true
 				}
 
 				if r.isOwner(m.Author.ID) {
-					log.Info("User is an owner")
+					r.Logger.Info("User is an owner")
 					allowed = true
 				}
 			}

@@ -10,10 +10,10 @@ import (
 // Config contains parent config data structure
 type Config struct {
 	Discord *Discord `yaml:"discord"`
-	Faceit  *Faceit  `yaml:"faceit"`
-	GRPC    *GRPC    `yaml:"grpc"`
-	API     *API     `yaml:"api"`
-	NATS    *NATS    `yaml:"nats"`
+	//Faceit  *Faceit  `yaml:"faceit"`
+	GRPC *GRPC `yaml:"grpc"`
+	API  *API  `yaml:"api"`
+	NATS *NATS `yaml:"nats"`
 }
 
 // LoadConfig loads the config for the discord bot
