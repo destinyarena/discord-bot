@@ -6,25 +6,24 @@ import (
 	"github.com/arturoguerra/d2arena/internal/config"
 	"github.com/arturoguerra/d2arena/internal/structs"
 	"github.com/bwmarrin/discordgo"
-	"github.com/labstack/gommon/log"
 	"github.com/sirupsen/logrus"
 )
 
 func (h *handler) register(s *discordgo.Session, id string) {
 	if _, err := s.Guild(h.Config.Discord.GuildID); err != nil {
-		log.Error(err)
+		h.Logger.Error(err)
 		return
 	}
 
 	u, err := s.User(id)
 	if err != nil {
-		log.Error(err)
+		h.Logger.Error(err)
 		return
 	}
 
 	channel, err := s.UserChannelCreate(id)
 	if err != nil {
-		log.Error(err)
+		h.Logger.Error(err)
 		return
 	}
 
@@ -54,7 +53,7 @@ func (h *handler) register(s *discordgo.Session, id string) {
 func (h *handler) registration(dg *discordgo.Session, nchan *structs.NATS) {
 	for i := range nchan.RecvRegistration {
 		if i.Id != "" {
-			log.Infof("Registering user: %s", i.Id)
+			h.Logger.Infof("Registering user: %s", i.Id)
 			h.register(dg, i.Id)
 		}
 	}

@@ -71,6 +71,10 @@ func main() {
 
 	go b.UpdateRoles()
 
+	// jonpall#2554 this is for you :)
+
+	dgo.Identify.Intents = discordgo.MakeIntent(discordgo.IntentsAll)
+
 	err = dgo.Open()
 	if err != nil {
 		log.Error(err)

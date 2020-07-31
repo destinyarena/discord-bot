@@ -15,7 +15,7 @@ func (h *handler) OnMemberJoin(s *discordgo.Session, m *discordgo.GuildMemberAdd
 
 	days := int(diff.Hours()) / 24
 
-	if days >= 7 {
+	if days >= 2 {
 		s.GuildMemberRoleAdd(m.Member.GuildID, m.User.ID, h.Config.Discord.JoinRoleID)
 	} else {
 		dmchannel, err := s.UserChannelCreate(m.User.ID)

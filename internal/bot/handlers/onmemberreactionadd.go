@@ -199,6 +199,6 @@ func (h *handler) invites(s *discordgo.Session, mr *discordgo.MessageReactionAdd
 }
 
 func (h *handler) OnMessageReactionAdd(s *discordgo.Session, mr *discordgo.MessageReactionAdd) {
-	h.invites(s, mr)
+	//h.invites(s, mr)
 	h.reactionroles(s, mr.MessageReaction, true)
 }
