@@ -17,7 +17,7 @@ func (h *handler) getInvite(hubid string) (string, error) {
 	defer conn.Close()
 
 	c := faceit.NewFaceitClient(conn)
-	h.Logger.Infof("Fetching invites for %s\n", hubid)
+	h.Logger.Infof("Fetching invites for %s", hubid)
 	r, err := c.GetInvite(context.Background(), &faceit.InviteRequest{
 		Hubid: hubid,
 	})

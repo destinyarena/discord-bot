@@ -31,17 +31,20 @@ func (h *handler) register(s *discordgo.Session, id string) {
 	var roles []string
 
 	for _, hub := range h.Config.Discord.Hubs {
-		hubs += fmt.Sprintf("[%s](%s)\n", hub.Format, hub.HubID)
-		roles = append(roles, hub.RoleID)
+		link, err := h.getInvite(hub.HubID)
+		if err != nil {
+			h.Logger.Error(err)
+		} else {
+			hubs += fmt.Sprintf("[%s](%s) \n", hub.Format, link)
+			roles = append(roles, hub.RoleID)
+		}
 	}
 
 	embed := &discordgo.MessageEmbed{
-		Title:       "Destiny Arena Faceit Invitation",
 		Description: hubs,
 	}
 
 	logembed := &discordgo.MessageEmbed{
-		Title:       "Hub invites Notification",
 		Description: fmt.Sprintf("Sent hub invites to <@%s>(`%s#%s`)", id, u.Username, u.Discriminator),
 	}
 
