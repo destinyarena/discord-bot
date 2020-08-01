@@ -63,7 +63,7 @@ func main() {
 	dgo.AddHandler(r.EventHandler)
 
 	dgo.AddHandler(h.OnReady)
-	dgo.AddHandler(h.OnMemberJoin)
+	//dgo.AddHandler(h.OnMemberJoin)
 	dgo.AddHandler(h.OnMessageReactionAdd)
 	dgo.AddHandler(h.OnMessageReactionRemove)
 
