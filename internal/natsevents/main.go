@@ -27,27 +27,34 @@ func (h *handler) register(s *discordgo.Session, id string) {
 		return
 	}
 
+	hubs := ""
+	var roles []string
+
+	for _, hub := range h.Config.Discord.Hubs {
+		hubs += fmt.Sprintf("[%s](%s)\n", hub.Format, hub.HubID)
+		roles = append(roles, hub.RoleID)
+	}
+
 	embed := &discordgo.MessageEmbed{
-		Description: "Please click this [link](https://discordapp.com/channels/650109209610027034/657733307353792524/665277347909599232) to get your hub invites!",
+		Title:       "Destiny Arena Faceit Invitation",
+		Description: hubs,
 	}
 
-	lembed := &discordgo.MessageEmbed{
-		Title:       "Hub invite link",
-		Description: fmt.Sprintf("Sent hubs channel link to <@%s>(`%s#%s`)", id, u.Username, u.Discriminator),
+	logembed := &discordgo.MessageEmbed{
+		Title:       "Hub invites Notification",
+		Description: fmt.Sprintf("Sent hub invites to <@%s>(`%s#%s`)", id, u.Username, u.Discriminator),
 	}
-
-	//All checks are done stuff starts here
 
 	if _, err := s.ChannelMessageSendEmbed(channel.ID, embed); err == nil {
 		s.GuildMemberRoleAdd(h.Config.Discord.GuildID, id, h.Config.Discord.RegistrationRoleID)
 	} else {
-		lembed = &discordgo.MessageEmbed{
+		logembed = &discordgo.MessageEmbed{
 			Title:       "403: Forbidden",
 			Description: fmt.Sprintf("Error sending hub channel to <@%s>(`%s#%s`) please contact them", id, u.Username, u.Discriminator),
 		}
 	}
 
-	s.ChannelMessageSendEmbed(h.Config.Discord.LogsID, lembed)
+	s.ChannelMessageSendEmbed(h.Config.Discord.LogsID, logembed)
 }
 
 func (h *handler) registration(dg *discordgo.Session, nchan *structs.NATS) {

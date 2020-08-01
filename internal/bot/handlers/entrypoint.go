@@ -15,7 +15,6 @@ type (
 	// Handler exports discordgo event handlers
 	Handler interface {
 		OnReady(*discordgo.Session, *discordgo.Ready)
-		OnMemberJoin(*discordgo.Session, *discordgo.GuildMemberAdd)
 		OnMessageReactionAdd(*discordgo.Session, *discordgo.MessageReactionAdd)
 		OnMessageReactionRemove(*discordgo.Session, *discordgo.MessageReactionRemove)
 	}

@@ -32,11 +32,11 @@ type (
 
 	// Hub is a single faceit hub
 	Hub struct {
-		Format    string `yaml:"format"`
-		HubID     string `yaml:"hub_id"`
-		RoleID    string `yaml:"role_id"`
-		EmojiID   string `yaml:"emoji_id"`
-		MessageID string `yaml:"message_id"`
-		SkillLvl  int    `yaml:"skillvl"`
+		Format string `yaml:"format"`
+		HubID  string `yaml:"hub_id"`
+		RoleID string `yaml:"role_id"`
+		//EmojiID   string `yaml:"emoji_id"`
+		//MessageID string `yaml:"message_id"`
+		//SkillLvl  int    `yaml:"skillvl"`
 	}
 )
