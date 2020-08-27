@@ -39,7 +39,7 @@ func (c *Commands) getFaceitProfile(id string) (*FaceitProfile, error) {
 
 	f := faceit.NewFaceitClient(conn)
 	log.Info("Fetching faceit profile")
-	r, err := f.GetProfile(context.Background(), &faceit.ProfileRequest{
+	r, err := f.GetProfileByID(context.Background(), &faceit.ProfileRequest{
 		Guid: id,
 	})
 	if err != nil {
@@ -93,8 +93,6 @@ func (c *Commands) profile(ctx *router.Context) {
 		ctx.ReplyEmbed(embed)
 		return
 	}
-
-	fmt.Println(uid)
 
 	profile, err := c.getProfile(uid)
 	if err != nil {

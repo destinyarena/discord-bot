@@ -1,13 +1,37 @@
 package commands
 
 import (
+	"context"
 	"errors"
 	"regexp"
 	"strings"
 
+	faceit "github.com/arturoguerra/d2arena/pkg/faceit"
 	"github.com/arturoguerra/d2arena/pkg/router"
 	"github.com/labstack/gommon/log"
+	"google.golang.org/grpc"
 )
+
+func (c *Commands) getFaceitGUIDByName(name string) (string, error) {
+	conn, err := grpc.Dial(c.Config.GRPC.Faceit, grpc.WithInsecure())
+	if err != nil {
+		return "", err
+	}
+
+	defer conn.Close()
+
+	f := faceit.NewFaceitClient(conn)
+	log.Info("Fetching faceit profile")
+	r, err := f.GetProfileByName(context.Background(), &faceit.ProfileNameRequest{
+		Name: name,
+	})
+
+	if err != nil {
+		return "", err
+	}
+
+	return r.GetGuid(), nil
+}
 
 // GetUID returns UID i guess
 func (c *Commands) GetUID(ctx *router.Context) (uid string, err error) {
@@ -24,7 +48,12 @@ func (c *Commands) GetUID(ctx *router.Context) (uid string, err error) {
 			log.Info("Searching by faceit GUID")
 			uid = id
 		} else {
-			err = errors.New("Fetchng profiles with a faceit name is unavailable at the moment")
+			uid, err := c.getFaceitGUIDByName(id)
+			if err != nil {
+				return "", err
+			}
+
+			return uid, nil
 		}
 	} else {
 		err = errors.New("Sorry but you must provide a way for us to find the user")
