@@ -48,9 +48,9 @@ func (h *handler) register(s *discordgo.Session, id string) {
 		Description: fmt.Sprintf("Sent hub invites to <@%s>(`%s#%s`)", id, u.Username, u.Discriminator),
 	}
 
-	if _, err := s.ChannelMessageSendEmbed(channel.ID, embed); err == nil {
-		s.GuildMemberRoleAdd(h.Config.Discord.GuildID, id, h.Config.Discord.RegistrationRoleID)
-	} else {
+	s.GuildMemberRoleAdd(h.Config.Discord.GuildID, id, h.Config.Discord.RegistrationRoleID)
+
+	if _, err := s.ChannelMessageSendEmbed(channel.ID, embed); err != nil {
 		logembed = &discordgo.MessageEmbed{
 			Title:       "403: Forbidden",
 			Description: fmt.Sprintf("Error sending hub channel to <@%s>(`%s#%s`) please contact them", id, u.Username, u.Discriminator),

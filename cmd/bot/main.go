@@ -63,6 +63,7 @@ func main() {
 	dgo.AddHandler(h.OnReady)
 	dgo.AddHandler(h.OnMessageReactionAdd)
 	dgo.AddHandler(h.OnMessageReactionRemove)
+	dgo.AddHandler(h.OnMemberJoin)
 
 	b := background.New(dgo, cfg)
 
