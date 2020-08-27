@@ -29,7 +29,7 @@ type (
 	}
 )
 
-func (c *Commands) getFaceitProfile(id string) (*FaceitProfile, error) {
+func (c *Commands) getFaceitProfileByGUID(id string) (*FaceitProfile, error) {
 	conn, err := grpc.Dial(c.Config.GRPC.Faceit, grpc.WithInsecure())
 	if err != nil {
 		return nil, err
@@ -118,7 +118,7 @@ func (c *Commands) profile(ctx *router.Context) {
 		return
 	}
 
-	fprofile, err := c.getFaceitProfile(profile.Faceit)
+	fprofile, err := c.getFaceitProfileByGUID(profile.Faceit)
 	if err != nil {
 		log.Error(err)
 		fprofile = &FaceitProfile{
