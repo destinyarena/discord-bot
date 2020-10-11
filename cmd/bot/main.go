@@ -5,15 +5,15 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/arturoguerra/d2arena/internal/background"
-	"github.com/arturoguerra/d2arena/internal/bot/commands"
-	"github.com/arturoguerra/d2arena/internal/bot/handlers"
-	"github.com/arturoguerra/d2arena/internal/config"
-	"github.com/arturoguerra/d2arena/internal/logging"
-	"github.com/arturoguerra/d2arena/internal/natsevents"
-	"github.com/arturoguerra/d2arena/internal/router"
-	"github.com/arturoguerra/d2arena/internal/structs"
 	"github.com/bwmarrin/discordgo"
+	"github.com/destinyarena/bot/internal/background"
+	"github.com/destinyarena/bot/internal/bot/commands"
+	"github.com/destinyarena/bot/internal/bot/handlers"
+	"github.com/destinyarena/bot/internal/config"
+	"github.com/destinyarena/bot/internal/logging"
+	"github.com/destinyarena/bot/internal/natsevents"
+	"github.com/destinyarena/bot/internal/router"
+	"github.com/destinyarena/bot/internal/structs"
 	"github.com/nats-io/nats.go"
 )
 

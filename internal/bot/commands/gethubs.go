@@ -4,7 +4,7 @@ import (
 	"context"
 	"io"
 
-	pb "github.com/arturoguerra/d2arena/pkg/faceit"
+	pb "github.com/destinyarena/bot/pkg/faceit"
 	"github.com/labstack/gommon/log"
 	"google.golang.org/grpc"
 )

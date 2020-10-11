@@ -4,10 +4,10 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/arturoguerra/d2arena/pkg/faceit"
-	"github.com/arturoguerra/d2arena/pkg/profiles"
-	"github.com/arturoguerra/d2arena/pkg/router"
 	"github.com/bwmarrin/discordgo"
+	"github.com/destinyarena/bot/pkg/faceit"
+	"github.com/destinyarena/bot/pkg/profiles"
+	"github.com/destinyarena/bot/pkg/router"
 	"github.com/labstack/gommon/log"
 	"google.golang.org/grpc"
 )
@@ -76,6 +76,14 @@ func (c *Commands) getProfile(id string) (*Profile, error) {
 		Bungie:  r.GetBungie(),
 		Banned:  r.GetBanned(),
 	}, nil
+}
+
+func getBannedValue(banned bool) string {
+	if banned {
+		return "yes"
+	}
+
+	return "no"
 }
 
 func (c *Commands) profile(ctx *router.Context) {
@@ -158,6 +166,11 @@ func (c *Commands) profile(ctx *router.Context) {
 	fields = append(fields, &discordgo.MessageEmbedField{
 		Name:  "Faceit Skill Level",
 		Value: fmt.Sprintf("%d", fprofile.Level),
+	})
+
+	fields = append(fields, &discordgo.MessageEmbedField{
+		Name:  "Banned",
+		Value: getBannedValue(profile.Banned),
 	})
 
 	log.Info("Trying to fetch user hubs")

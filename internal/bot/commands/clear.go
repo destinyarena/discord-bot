@@ -3,8 +3,8 @@ package commands
 import (
 	"context"
 
-	"github.com/arturoguerra/d2arena/pkg/profiles"
-	"github.com/arturoguerra/d2arena/pkg/router"
+	"github.com/destinyarena/bot/pkg/profiles"
+	"github.com/destinyarena/bot/pkg/router"
 	"github.com/labstack/gommon/log"
 	"google.golang.org/grpc"
 )

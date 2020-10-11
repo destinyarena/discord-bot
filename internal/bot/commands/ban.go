@@ -4,10 +4,10 @@ import (
 	"context"
 	"fmt"
 
-	faceit "github.com/arturoguerra/d2arena/pkg/faceit"
-	profiles "github.com/arturoguerra/d2arena/pkg/profiles"
-	"github.com/arturoguerra/d2arena/pkg/router"
 	"github.com/bwmarrin/discordgo"
+	faceit "github.com/destinyarena/bot/pkg/faceit"
+	profiles "github.com/destinyarena/bot/pkg/profiles"
+	"github.com/destinyarena/bot/pkg/router"
 	"github.com/labstack/gommon/log"
 	"google.golang.org/grpc"
 )

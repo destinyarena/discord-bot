@@ -3,9 +3,9 @@ package natsevents
 import (
 	"fmt"
 
-	"github.com/arturoguerra/d2arena/internal/config"
-	"github.com/arturoguerra/d2arena/internal/structs"
 	"github.com/bwmarrin/discordgo"
+	"github.com/destinyarena/bot/internal/config"
+	"github.com/destinyarena/bot/internal/structs"
 	"github.com/sirupsen/logrus"
 )
 

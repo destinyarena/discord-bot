@@ -3,8 +3,8 @@ package background
 import (
 	"time"
 
-	"github.com/arturoguerra/d2arena/internal/config"
 	"github.com/bwmarrin/discordgo"
+	"github.com/destinyarena/bot/internal/config"
 )
 
 func checkroles(roles []string, roleid string) bool {

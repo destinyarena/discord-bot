@@ -1,8 +1,8 @@
 package handlers
 
 import (
-	"github.com/arturoguerra/d2arena/internal/config"
 	"github.com/bwmarrin/discordgo"
+	"github.com/destinyarena/bot/internal/config"
 	"github.com/sirupsen/logrus"
 )
 

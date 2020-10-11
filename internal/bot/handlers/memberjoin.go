@@ -3,8 +3,8 @@ package handlers
 import (
 	"context"
 
-	"github.com/arturoguerra/d2arena/pkg/profiles"
 	"github.com/bwmarrin/discordgo"
+	"github.com/destinyarena/bot/pkg/profiles"
 	"google.golang.org/grpc"
 )
 

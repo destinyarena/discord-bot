@@ -6,8 +6,8 @@ import (
 	"regexp"
 	"strings"
 
-	faceit "github.com/arturoguerra/d2arena/pkg/faceit"
-	"github.com/arturoguerra/d2arena/pkg/router"
+	faceit "github.com/destinyarena/bot/pkg/faceit"
+	"github.com/destinyarena/bot/pkg/router"
 	"github.com/labstack/gommon/log"
 	"google.golang.org/grpc"
 )

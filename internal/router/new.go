@@ -5,9 +5,9 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/arturoguerra/d2arena/internal/config"
-	rts "github.com/arturoguerra/d2arena/pkg/router"
 	"github.com/bwmarrin/discordgo"
+	"github.com/destinyarena/bot/internal/config"
+	rts "github.com/destinyarena/bot/pkg/router"
 	"github.com/sirupsen/logrus"
 )
 
