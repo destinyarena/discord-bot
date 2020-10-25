@@ -19,7 +19,7 @@ jobs:
       with:
         registry: harbor.ar2ro.io
         username: ${{ secrets.HARBOR_USERNAME }}
-        password: ${{ secrets.HARBOR_TOKEN }}
+        password: ${{ secrets.HARBOR_PASSWORD }}
     - name: Build and push to harbor
       uses: docker/build-push-action@v2
       with:
