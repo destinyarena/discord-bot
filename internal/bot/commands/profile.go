@@ -22,10 +22,11 @@ type (
 
 	// Profile holds a stripped down version of a db profile
 	Profile struct {
-		Discord string
-		Faceit  string
-		Bungie  string
-		Banned  bool
+		Discord   string
+		Faceit    string
+		Bungie    string
+		Banned    bool
+		BanReason string
 	}
 )
 
@@ -71,10 +72,11 @@ func (c *Commands) getProfile(id string) (*Profile, error) {
 	}
 
 	return &Profile{
-		Discord: r.GetDiscord(),
-		Faceit:  r.GetFaceit(),
-		Bungie:  r.GetBungie(),
-		Banned:  r.GetBanned(),
+		Discord:   r.GetDiscord(),
+		Faceit:    r.GetFaceit(),
+		Bungie:    r.GetBungie(),
+		Banned:    r.GetBanned(),
+		BanReason: "",
 	}, nil
 }
 
@@ -172,6 +174,13 @@ func (c *Commands) profile(ctx *router.Context) {
 		Name:  "Banned",
 		Value: getBannedValue(profile.Banned),
 	})
+
+	if profile.Banned {
+		fields = append(fields, &discordgo.MessageEmbedField{
+			Name:  "Ban Reason",
+			Value: profile.BanReason,
+		})
+	}
 
 	log.Info("Trying to fetch user hubs")
 	hubs, err := c.GetHubs(profile.Faceit)

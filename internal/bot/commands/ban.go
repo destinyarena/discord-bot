@@ -3,6 +3,7 @@ package commands
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/bwmarrin/discordgo"
 	faceit "github.com/destinyarena/bot/pkg/faceit"
@@ -14,7 +15,12 @@ import (
 
 func (c *Commands) ban(ctx *router.Context) {
 	// Setup logic
-	reason := "TODO"
+	reason := strings.Join(ctx.Args[1:], " ")
+	if len(reason) == 0 {
+		ctx.Reply("You must provide a ban reason: -ban <fid|did|bid|@|fname> <reason>")
+		return
+	}
+
 	guild, err := ctx.Session.Guild(c.Config.Discord.GuildID)
 	if err != nil {
 		ctx.Reply("Error fetching Guild ID")
@@ -70,8 +76,9 @@ func (c *Commands) ban(ctx *router.Context) {
 	fields := make([]*discordgo.MessageEmbedField, 0)
 
 	// Banning
-	_, err = pClient.Ban(context.Background(), &profiles.IdRequest{
-		Id: profile.Discord,
+	_, err = pClient.Ban(context.Background(), &profiles.BanRequest{
+		Id:     profile.Discord,
+		Reason: reason,
 	})
 	if err != nil {
 		ctx.Reply("Error marking user as banned")

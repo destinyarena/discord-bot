@@ -13,6 +13,7 @@ import (
 var unbanhubs = []string{"f2c858d2-4a8e-42c0-830f-e97dda8da1ba"}
 
 func (c *Commands) unban(ctx *router.Context) {
+	berr := false
 	guild, err := ctx.Session.Guild(c.Config.Discord.GuildID)
 	if err != nil {
 		ctx.Reply("Error fetching Guild ID")
@@ -27,17 +28,18 @@ func (c *Commands) unban(ctx *router.Context) {
 	profile, err := c.getProfile(uid)
 	if err != nil {
 		ctx.Reply("Error fetching user profile")
+		return
 	}
 
 	if err = ctx.Session.GuildBanDelete(guild.ID, profile.Discord); err != nil {
 		ctx.Reply("Error unbanning user from discord")
-		return
+		berr = true
 	}
 
 	pconn, err := grpc.Dial(c.Config.GRPC.Profile, grpc.WithInsecure())
 	if err != nil {
-		ctx.Reply("Error conneting to internal profiles system")
-		return
+		ctx.Reply("Error unbanning user from our system")
+		berr = true
 	}
 
 	defer pconn.Close()
@@ -50,8 +52,8 @@ func (c *Commands) unban(ctx *router.Context) {
 
 	fconn, err := grpc.Dial(c.Config.GRPC.Faceit, grpc.WithInsecure())
 	if err != nil {
-		ctx.Reply("Error connecting to internal faceit system")
-		return
+		ctx.Reply("Error unbanning user from faceit")
+		berr = true
 	}
 
 	defer fconn.Close()
@@ -65,5 +67,9 @@ func (c *Commands) unban(ctx *router.Context) {
 		}); err != nil {
 			log.Error(err)
 		}
+	}
+
+	if berr == false {
+		ctx.Reply("Unbanned user successfully")
 	}
 }
