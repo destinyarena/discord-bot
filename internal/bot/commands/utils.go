@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"regexp"
-	"strings"
 
 	faceit "github.com/destinyarena/bot/pkg/faceit"
 	"github.com/destinyarena/bot/pkg/router"
@@ -39,7 +38,7 @@ func (c *Commands) GetUID(ctx *router.Context) (uid string, err error) {
 		log.Info("Searching by Discord Mention")
 		uid = ctx.Mentions[0].ID
 	} else if len(ctx.Args) != 0 {
-		id := strings.Join(ctx.Args[0:], " ")
+		id := ctx.Args[0]
 		log.Info(id)
 		if m, _ := regexp.Match(`^\d+$`, []byte(id)); m {
 			log.Info("Searching by Discord ID")
