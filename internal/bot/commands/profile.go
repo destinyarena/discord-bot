@@ -76,7 +76,7 @@ func (c *Commands) getProfile(id string) (*Profile, error) {
 		Faceit:    r.GetFaceit(),
 		Bungie:    r.GetBungie(),
 		Banned:    r.GetBanned(),
-		BanReason: "",
+		BanReason: r.GetBanreason(),
 	}, nil
 }
 
