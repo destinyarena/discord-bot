@@ -175,7 +175,7 @@ func (c *Commands) profile(ctx *router.Context) {
 		Value: getBannedValue(profile.Banned),
 	})
 
-	if profile.Banned {
+	if profile.Banned && len(profile.BanReason) > 0 {
 		fields = append(fields, &discordgo.MessageEmbedField{
 			Name:  "Ban Reason",
 			Value: profile.BanReason,
