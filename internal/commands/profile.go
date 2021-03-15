@@ -48,6 +48,8 @@ func (c *profile) CommandFunction(ctx *gommand.Context) error {
 		return err
 	}
 
+	c.Logger.Infof("UID: %s", uid)
+
 	profile, err := c.Profiles.Get(uid)
 	if err != nil {
 		embed = &disgord.Embed{
@@ -59,7 +61,6 @@ func (c *profile) CommandFunction(ctx *gommand.Context) error {
 		ctx.Reply(embed)
 		return err
 	}
-	c.Logger.Info("PAIN")
 
 	guild := ctx.Session.Guild(disgord.ParseSnowflakeString(c.Config.GuildID))
 	duser, err := guild.Member(disgord.ParseSnowflakeString(profile.Discord)).Get()
