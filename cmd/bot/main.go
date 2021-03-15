@@ -1,18 +1,15 @@
 package main
 
 import (
-	"os"
-	"os/signal"
-	"syscall"
-
-	"github.com/bwmarrin/discordgo"
-	"github.com/destinyarena/bot/internal/background"
-	"github.com/destinyarena/bot/internal/bot/commands"
-	"github.com/destinyarena/bot/internal/bot/handlers"
+	"github.com/andersfylling/disgord"
+	"github.com/destinyarena/bot/internal/bot"
+	"github.com/destinyarena/bot/internal/commands"
 	"github.com/destinyarena/bot/internal/config"
+	"github.com/destinyarena/bot/internal/faceit"
+	"github.com/destinyarena/bot/internal/handlers"
 	"github.com/destinyarena/bot/internal/logging"
 	"github.com/destinyarena/bot/internal/natsevents"
-	"github.com/destinyarena/bot/internal/router"
+	"github.com/destinyarena/bot/internal/profiles"
 	"github.com/destinyarena/bot/internal/structs"
 	"github.com/nats-io/nats.go"
 )
@@ -45,43 +42,31 @@ func main() {
 
 	log.Infoln("Starting Discord Bot")
 
-	dgo, err := discordgo.New("Bot " + cfg.Discord.Token)
+	dclient := disgord.New(disgord.Config{
+		BotToken: cfg.Discord.Token,
+		Logger:   log,
+	})
+
+	defer dclient.Gateway().StayConnectedUntilInterrupted()
+
+	bot, err := bot.New(log, dclient, cfg.Discord)
 	if err != nil {
-		log.Error(err)
-		return
+		log.Fatal(err)
 	}
 
-	r := router.New(cfg, log)
+	fclient, err := faceit.New(log, cfg.Faceit)
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	commands.New(r)
-
-	h := handlers.New(cfg, log)
-
-	natsevents.New(dgo, cfg, log, nchan)
-
-	dgo.AddHandler(r.EventHandler)
-	dgo.AddHandler(h.OnReady)
-	dgo.AddHandler(h.OnMessageReactionAdd)
-	dgo.AddHandler(h.OnMessageReactionRemove)
-	dgo.AddHandler(h.OnMemberJoin)
-
-	b := background.New(dgo, cfg)
-
-	go b.UpdateRoles()
+	pclient, err := profiles.New(log, cfg.Profiles)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	// jonpall#2554 this is for you :)
+	commands.New(bot, fclient, pclient, log)
+	handlers.New(bot, fclient, pclient, log)
+	natsevents.New(bot, log, nchan)
 
-	dgo.Identify.Intents = discordgo.MakeIntent(discordgo.IntentsAll)
-
-	err = dgo.Open()
-	if err != nil {
-		log.Error(err)
-		return
-	}
-
-	sc := make(chan os.Signal, 1)
-	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt, os.Kill)
-	<-sc
-
-	dgo.Close()
 }

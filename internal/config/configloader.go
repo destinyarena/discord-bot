@@ -4,20 +4,25 @@ import (
 	"io/ioutil"
 	"os"
 
+	"github.com/destinyarena/bot/internal/bot"
+	"github.com/destinyarena/bot/internal/faceit"
+	"github.com/destinyarena/bot/internal/natsevents"
+	"github.com/destinyarena/bot/internal/profiles"
+
 	"gopkg.in/yaml.v2"
 )
 
 // Config contains parent config data structure
 type Config struct {
-	Discord *Discord `yaml:"discord"`
-	GRPC    *GRPC    `yaml:"grpc"`
-	API     *API     `yaml:"api"`
-	NATS    *NATS    `yaml:"nats"`
+	Discord  *bot.Config        `yaml:"discord"`
+	Faceit   *faceit.Config     `yaml:"faceit"`
+	Profiles *profiles.Config   `yaml:"profiles"`
+	NATS     *natsevents.Config `yaml:"nats"`
 }
 
 // LoadConfig loads the config for the discord bot
 func LoadConfig() (*Config, error) {
-	cfgLocation := os.Getenv("DISCORD_CONFIG_LOCATION")
+	cfgLocation := os.Getenv("BOT_CONFIG_LOCATION")
 
 	cfg := Config{}
 

@@ -3,6 +3,8 @@ module github.com/destinyarena/bot
 go 1.14
 
 require (
+	github.com/andersfylling/disgord v0.26.4
+	github.com/auttaja/gommand v1.20.0
 	github.com/bwmarrin/discordgo v0.22.0
 	github.com/golang/protobuf v1.4.2
 	github.com/joeshaw/envdecode v0.0.0-20200121155833-099f1fc765bd

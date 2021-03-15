@@ -1,8 +1,7 @@
-package config
+package bot
 
 type (
-	// Discord is the discord config
-	Discord struct {
+	Config struct {
 		// Bot Stuff
 		Prefix string `yaml:"prefix"`
 		Token  string `yaml:"token"`
@@ -15,7 +14,8 @@ type (
 
 		// Permissions
 		Owners     []string `yaml:"owners"`
-		StaffRoles []string `yaml:"staff_roles"`
+		AdminRoles []string `yaml:"admin_roles"`
+		ModRoles   []string `yaml:"mod_roles"`
 
 		// Reaction roles stuff
 		RegistrationRoleID string          `yaml:"registration_role"`
@@ -40,3 +40,7 @@ type (
 		//SkillLvl  int    `yaml:"skillvl"`
 	}
 )
+
+func NewConfig() (*Config, error) {
+	return nil, nil
+}

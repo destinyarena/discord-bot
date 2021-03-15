@@ -3,25 +3,22 @@ package natsevents
 import (
 	"fmt"
 
-	"github.com/bwmarrin/discordgo"
-	"github.com/destinyarena/bot/internal/config"
+	"github.com/andersfylling/disgord"
+	"github.com/destinyarena/bot/internal/bot"
 	"github.com/destinyarena/bot/internal/structs"
 	"github.com/sirupsen/logrus"
 )
 
-func (h *handler) register(s *discordgo.Session, id string) {
-	if _, err := s.Guild(h.Config.Discord.GuildID); err != nil {
-		h.Logger.Error(err)
-		return
-	}
+func (h *handler) register(id string) {
 
-	u, err := s.User(id)
+	user := h.Bot.Client.User(disgord.ParseSnowflakeString(id))
+	channel, err := user.CreateDM()
 	if err != nil {
 		h.Logger.Error(err)
 		return
 	}
 
-	channel, err := s.UserChannelCreate(id)
+	u, err := user.Get()
 	if err != nil {
 		h.Logger.Error(err)
 		return
@@ -30,7 +27,7 @@ func (h *handler) register(s *discordgo.Session, id string) {
 	hubs := ""
 	var roles []string
 
-	for _, hub := range h.Config.Discord.Hubs {
+	for _, hub := range h.Bot.Config.Hubs {
 		link, err := h.getInvite(hub.HubID)
 		if err != nil {
 			h.Logger.Error(err)
@@ -40,49 +37,47 @@ func (h *handler) register(s *discordgo.Session, id string) {
 		}
 	}
 
-	embed := &discordgo.MessageEmbed{
+	embed := &disgord.Embed{
 		Description: hubs,
 	}
 
-	logembed := &discordgo.MessageEmbed{
+	logembed := &disgord.Embed{
 		Description: fmt.Sprintf("Sent hub invites to <@%s>(`%s#%s`)", id, u.Username, u.Discriminator),
 	}
 
-	s.GuildMemberRoleAdd(h.Config.Discord.GuildID, id, h.Config.Discord.RegistrationRoleID)
+	h.Bot.Client.Guild(disgord.ParseSnowflakeString(h.Bot.Config.GuildID)).Member(u.ID).AddRole(disgord.ParseSnowflakeString(h.Bot.Config.RegistrationRoleID))
 
-	if _, err := s.ChannelMessageSendEmbed(channel.ID, embed); err != nil {
-		logembed = &discordgo.MessageEmbed{
+	if _, err := h.Bot.Client.SendMsg(channel.ID, embed); err != nil {
+		logembed = &disgord.Embed{
 			Title:       "403: Forbidden",
 			Description: fmt.Sprintf("Error sending hub channel to <@%s>(`%s#%s`) please contact them", id, u.Username, u.Discriminator),
 		}
 	}
 
-	s.ChannelMessageSendEmbed(h.Config.Discord.LogsID, logembed)
+	h.Bot.Client.SendMsg(disgord.ParseSnowflakeString(h.Bot.Config.LogsID), logembed)
 }
 
-func (h *handler) registration(dg *discordgo.Session, nchan *structs.NATS) {
+func (h *handler) registration(nchan *structs.NATS) {
 	for i := range nchan.RecvRegistration {
 		if i.Id != "" {
 			h.Logger.Infof("Registering user: %s", i.Id)
-			h.register(dg, i.Id)
+			h.register(i.Id)
 		}
 	}
 }
 
 type handler struct {
-	Session *discordgo.Session
-	Config  *config.Config
-	Logger  *logrus.Logger
+	Bot    *bot.Bot
+	Logger *logrus.Logger
 }
 
 // New registeres
-func New(dg *discordgo.Session, cfg *config.Config, logger *logrus.Logger, nchan *structs.NATS) {
+func New(bot *bot.Bot, logger *logrus.Logger, nchan *structs.NATS) {
 	logger.Infoln("Registering NATS Events")
 	h := &handler{
-		Session: dg,
-		Config:  cfg,
-		Logger:  logger,
+		Bot:    bot,
+		Logger: logger,
 	}
 
-	go h.registration(dg, nchan)
+	go h.registration(nchan)
 }
