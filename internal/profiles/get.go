@@ -14,6 +14,8 @@ func (p *profiles) Get(id string) (*Profile, error) {
 
 	defer conn.Close()
 
+	p.Logger.Infof("Getting Database profile for: %s", id)
+
 	r, err := client.GetProfile(context.Background(), &pb.IdRequest{
 		Id: id,
 	})

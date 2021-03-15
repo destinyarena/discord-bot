@@ -33,7 +33,6 @@ func getBannedValue(banned bool) string {
 }
 
 func (c *profile) CommandFunction(ctx *gommand.Context) error {
-	c.Logger.Info("PAIN")
 	var embed *disgord.Embed
 	var uid string
 
@@ -48,7 +47,6 @@ func (c *profile) CommandFunction(ctx *gommand.Context) error {
 		ctx.Reply(embed)
 		return err
 	}
-	c.Logger.Info("PAIN")
 
 	profile, err := c.Profiles.Get(uid)
 	if err != nil {
