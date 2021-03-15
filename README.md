@@ -1,6 +1,4 @@
 
-# Destiny 2 Arena Security
+# Arena Security
 
-We protec\
-We Attac\
-But most importantly we ban OJ
+The discord bot handles all discord related api events and interacts with the faceit and profiles modules
