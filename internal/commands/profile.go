@@ -17,11 +17,11 @@ type profile struct {
 func (c *profile) Init() {
 	c.Name = "profile"
 	c.Description = "Gets a members profile"
-	//c.PermissionValidators = []func(*gommand.Context) (string, bool){
-	//	c.isOwner(),
-	//	c.isAdmin(),
-	//	c.isMod(),
-	//}
+	c.PermissionValidators = []func(*gommand.Context) (string, bool){
+		c.isOwner(),
+		c.isAdmin(),
+		c.isMod(),
+	}
 }
 
 func getBannedValue(banned bool) string {
@@ -34,7 +34,6 @@ func getBannedValue(banned bool) string {
 
 func (c *profile) CommandFunction(ctx *gommand.Context) error {
 	var embed *disgord.Embed
-	var uid string
 
 	uid, err := c.GetUID(ctx)
 	if err != nil {
