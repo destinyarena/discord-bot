@@ -82,12 +82,11 @@ func (c *profile) CommandFunction(ctx *gommand.Context) error {
 		}
 	}
 
-	c.Logger.Info("Getting more info")
+	fields := make([]*disgord.EmbedField, 0)
+
 	c.Logger.Info(fprofile)
 	c.Logger.Info(duser)
-
-	fields := make([]*disgord.EmbedField, 0)
-	c.Logger.Info(fields)
+	c.Logger.Info(duser.User)
 
 	fields = append(fields, &disgord.EmbedField{
 		Name:  "Discord Username",
