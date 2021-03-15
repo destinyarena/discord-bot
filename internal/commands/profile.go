@@ -81,7 +81,6 @@ func (c *profile) CommandFunction(ctx *gommand.Context) error {
 			Level:    3,
 		}
 	}
-	c.Logger.Info("PAIN")
 
 	fields := make([]*disgord.EmbedField, 0)
 
@@ -89,36 +88,43 @@ func (c *profile) CommandFunction(ctx *gommand.Context) error {
 		Name:  "Discord Username",
 		Value: fmt.Sprintf("%s#%s", duser.User.Username, duser.User.Discriminator),
 	})
+	c.Logger.Info("Discord Username")
 
 	fields = append(fields, &disgord.EmbedField{
 		Name:  "Discord ID",
 		Value: duser.UserID.String(),
 	})
+	c.Logger.Info("Discord ID")
 
 	fields = append(fields, &disgord.EmbedField{
 		Name:  "Bungie ID",
 		Value: profile.Bungie,
 	})
+	c.Logger.Info("Bungie ID")
 
 	fields = append(fields, &disgord.EmbedField{
 		Name:  "Faceit Username",
 		Value: fprofile.Username,
 	})
+	c.Logger.Info("Faceit Username")
 
 	fields = append(fields, &disgord.EmbedField{
 		Name:  "Faceit GUID",
 		Value: fprofile.GUID,
 	})
+	c.Logger.Info("Faceit GUID")
 
 	fields = append(fields, &disgord.EmbedField{
 		Name:  "Faceit Skill Level",
 		Value: fmt.Sprintf("%d", fprofile.Level),
 	})
+	c.Logger.Info("Skill Level")
 
 	fields = append(fields, &disgord.EmbedField{
 		Name:  "Banned",
 		Value: getBannedValue(profile.Banned),
 	})
+	c.Logger.Info("Banned")
 
 	if profile.Banned && len(profile.BanReason) > 0 {
 		fields = append(fields, &disgord.EmbedField{
@@ -126,6 +132,7 @@ func (c *profile) CommandFunction(ctx *gommand.Context) error {
 			Value: profile.BanReason,
 		})
 	}
+	c.Logger.Info("BannedReason")
 
 	log.Info("Trying to fetch user hubs")
 	hubs, err := c.Faceit.GetUserHubs(profile.Faceit)
