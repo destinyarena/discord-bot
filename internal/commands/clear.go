@@ -6,8 +6,8 @@ import (
 )
 
 type clear struct {
+	*BaseCommand
 	gommand.CommandBasics
-	BaseCommand
 }
 
 func (c *clear) Init() {

@@ -9,8 +9,8 @@ import (
 var unbanhubs = []string{"f2c858d2-4a8e-42c0-830f-e97dda8da1ba"}
 
 type unban struct {
+	*BaseCommand
 	gommand.CommandBasics
-	BaseCommand
 }
 
 func (c *unban) Init() {

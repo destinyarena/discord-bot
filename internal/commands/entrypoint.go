@@ -16,15 +16,15 @@ type BaseCommand struct {
 
 // New returns a new command handler
 func New(bot *bot.Bot, faceit faceit.Faceit, profiles profiles.Profiles, logger *logrus.Logger) {
-	base := BaseCommand{
+	base := &BaseCommand{
 		Faceit:   faceit,
 		Profiles: profiles,
 		Logger:   logger,
 	}
 
-	bot.SetCommand(&ban{BaseCommand: base})
-	bot.SetCommand(&unban{BaseCommand: base})
-	bot.SetCommand(&clear{BaseCommand: base})
+	//bot.SetCommand(&ban{BaseCommand: base})
+	//bot.SetCommand(&unban{BaseCommand: base})
+	//bot.SetCommand(&clear{BaseCommand: base})
 	bot.SetCommand(&profile{BaseCommand: base})
 
 }

@@ -10,8 +10,8 @@ import (
 )
 
 type profile struct {
+	*BaseCommand
 	gommand.CommandBasics
-	BaseCommand
 }
 
 func (c *profile) Init() {
