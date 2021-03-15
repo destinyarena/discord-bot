@@ -21,6 +21,8 @@ func New(logger *logrus.Logger, client *disgord.Client, config *Config) (*Bot, e
 		PrefixCheck: gommand.MultiplePrefixCheckers(gommand.StaticPrefix(config.Prefix), gommand.MentionPrefix),
 	})
 
+	router.Hook(client)
+
 	b := &Bot{
 		Router: router,
 		Config: config,
