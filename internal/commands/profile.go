@@ -60,8 +60,7 @@ func (c *profile) CommandFunction(ctx *gommand.Context) error {
 		return err
 	}
 
-	guild := ctx.Session.Guild(disgord.ParseSnowflakeString(c.Config.GuildID))
-	duser, err := guild.Member(disgord.ParseSnowflakeString(profile.Discord)).Get()
+	user, err := ctx.Session.User(disgord.ParseSnowflakeString(profile.Discord)).Get()
 	if err != nil {
 		embed = &disgord.Embed{
 			Title:       "Error Fetching User",
@@ -85,18 +84,17 @@ func (c *profile) CommandFunction(ctx *gommand.Context) error {
 	fields := make([]*disgord.EmbedField, 0)
 
 	c.Logger.Info(fprofile)
-	c.Logger.Info(duser)
-	c.Logger.Info(duser.User)
+	c.Logger.Info(user)
 
 	fields = append(fields, &disgord.EmbedField{
 		Name:  "Discord Username",
-		Value: fmt.Sprintf("%s#%s", duser.User.Username, duser.User.Discriminator),
+		Value: fmt.Sprintf("%s#%s", user.Username, user.Discriminator),
 	})
 	c.Logger.Info("Discord Username")
 
 	fields = append(fields, &disgord.EmbedField{
 		Name:  "Discord ID",
-		Value: duser.UserID.String(),
+		Value: user.ID.String(),
 	})
 	c.Logger.Info("Discord ID")
 
