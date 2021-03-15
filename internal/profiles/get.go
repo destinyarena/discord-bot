@@ -7,7 +7,6 @@ import (
 )
 
 func (p *profiles) Get(id string) (*Profile, error) {
-	p.Logger.Infof("Getting stuff")
 	client, conn, err := p.conn()
 	if err != nil {
 		return nil, err

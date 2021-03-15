@@ -34,9 +34,6 @@ func getBannedValue(banned bool) string {
 
 func (c *profile) CommandFunction(ctx *gommand.Context) error {
 	var embed *disgord.Embed
-
-	c.Logger.Infof("PAIN")
-
 	uid, err := c.GetUID(ctx)
 	if err != nil {
 		embed = &disgord.Embed{
@@ -62,6 +59,7 @@ func (c *profile) CommandFunction(ctx *gommand.Context) error {
 		ctx.Reply(embed)
 		return err
 	}
+	c.Logger.Info("PAIN")
 
 	guild := ctx.Session.Guild(disgord.ParseSnowflakeString(c.Config.GuildID))
 	duser, err := guild.Member(disgord.ParseSnowflakeString(profile.Discord)).Get()
@@ -75,7 +73,6 @@ func (c *profile) CommandFunction(ctx *gommand.Context) error {
 		ctx.Reply(embed)
 		return err
 	}
-	c.Logger.Info("PAIN")
 
 	fprofile, err := c.Faceit.GetProfileByID(profile.Faceit)
 	if err != nil {
