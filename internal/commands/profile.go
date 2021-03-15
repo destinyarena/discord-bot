@@ -59,12 +59,10 @@ func (c *profile) CommandFunction(ctx *gommand.Context) error {
 		ctx.Reply(embed)
 		return err
 	}
-	c.Logger.Info("PAIN")
 
 	guild := ctx.Session.Guild(disgord.ParseSnowflakeString(c.Config.GuildID))
 	duser, err := guild.Member(disgord.ParseSnowflakeString(profile.Discord)).Get()
 	if err != nil {
-		c.Logger.Error(err)
 		embed = &disgord.Embed{
 			Title:       "Error Fetching User",
 			Description: "Error fetching Profile",

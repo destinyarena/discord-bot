@@ -19,6 +19,7 @@ func New(bot *bot.Bot, faceit faceit.Faceit, profiles profiles.Profiles, logger 
 	base := &BaseCommand{
 		Faceit:   faceit,
 		Profiles: profiles,
+		Config:   bot.Config,
 		Logger:   logger,
 	}
 
