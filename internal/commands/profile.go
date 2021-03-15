@@ -82,6 +82,9 @@ func (c *profile) CommandFunction(ctx *gommand.Context) error {
 		}
 	}
 
+	c.Logger.Info("Getting more info")
+	c.Logger.Info(fprofile)
+
 	fields := make([]*disgord.EmbedField, 0)
 
 	fields = append(fields, &disgord.EmbedField{
