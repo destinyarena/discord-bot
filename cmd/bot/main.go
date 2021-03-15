@@ -49,6 +49,9 @@ func main() {
 
 	defer dclient.Gateway().StayConnectedUntilInterrupted()
 
+	log.Info(cfg.Discord)
+	log.info(cfg.Profiles)
+
 	bot, err := bot.New(log, dclient, cfg.Discord)
 	if err != nil {
 		log.Fatal(err)
