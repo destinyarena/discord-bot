@@ -9,17 +9,14 @@ import (
 )
 
 type ban struct {
-	BaseCommand
+	*BaseCommand
 	gommand.CommandBasics
 }
 
 func (c *ban) Init() {
 	c.Name = "ban"
 	c.Description = "Bans user from discord, faceit and bungie"
-	c.PermissionValidators = []func(*gommand.Context) (string, bool){
-		c.isOwner(),
-		c.isAdmin(),
-	}
+	c.PermissionValidators = c.isAllowed(10)
 }
 
 func (c *ban) CommandFunction(ctx *gommand.Context) error {

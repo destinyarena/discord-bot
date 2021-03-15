@@ -13,10 +13,7 @@ type clear struct {
 func (c *clear) Init() {
 	c.Name = "clear"
 	c.Description = "Clears a user profile"
-	c.PermissionValidators = []func(*gommand.Context) (string, bool){
-		c.isOwner(),
-		c.isAdmin(),
-	}
+	c.PermissionValidators = c.isAllowed(5)
 }
 
 func (c *clear) CommandFunction(ctx *gommand.Context) error {

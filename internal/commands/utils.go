@@ -5,6 +5,7 @@ import (
 	"regexp"
 
 	"github.com/andersfylling/disgord"
+	"github.com/andersfylling/snowflake/v5"
 	"github.com/auttaja/gommand"
 	"github.com/labstack/gommon/log"
 )
@@ -47,63 +48,61 @@ func (bc *BaseCommand) StringArgs(args []interface{}) []string {
 	return sargs
 }
 
-type permFunc func(ctx *gommand.Context) (string, bool)
+var permFunc func(ctx *gommand.Context) (string, bool)
 
 func inStringSlice(slice []string, item string) bool {
-	for _, i := range slice {
-		if i == item {
+	for _, v := range slice {
+		if v == item {
 			return true
 		}
 	}
 	return false
 }
 
-func (bc *BaseCommand) isOwner() permFunc {
-	return func(ctx *gommand.Context) (string, bool) {
-		if inStringSlice(bc.Config.Owners, ctx.Message.Author.ID.String()) {
-			return "", true
-		}
-
-		return "Sorry you are not a bot owner", false
-	}
-}
-
-func (bc *BaseCommand) isAdmin() permFunc {
-	return func(ctx *gommand.Context) (string, bool) {
-		guild := ctx.Session.Guild(disgord.ParseSnowflakeString(bc.Config.GuildID))
-		member, err := guild.Member(ctx.Message.Author.ID).Get()
-		if err != nil {
-			return "Error getting member", false
-		}
-
-		for _, role := range member.Roles {
-			for _, admrole := range bc.Config.AdminRoles {
-				if role.String() == admrole {
-					return "", true
-				}
+func hasRole(slice []snowflake.Snowflake, roles []string) bool {
+	for _, v := range slice {
+		for _, rid := range roles {
+			if v.String() == rid {
+				return true
 			}
 		}
-
-		return "Sorry you are not an admin", false
 	}
+
+	return false
 }
 
-func (bc *BaseCommand) isMod() permFunc {
-	return func(ctx *gommand.Context) (string, bool) {
-		guild := ctx.Session.Guild(disgord.ParseSnowflakeString(bc.Config.GuildID))
-		member, err := guild.Member(ctx.Message.Author.ID).Get()
-		if err != nil {
-			return "Error getting member", false
-		}
-
-		for _, role := range member.Roles {
-			for _, modrole := range bc.Config.ModRoles {
-				if role.String() == modrole {
-					return "", true
-				}
-			}
-		}
-
-		return "Sorry you are not an admin", false
+func (bc *BaseCommand) permLvl(ctx *gommand.Context) int {
+	if inStringSlice(bc.Config.Owners, ctx.Message.Author.ID.String()) {
+		return 10
 	}
+
+	member, err := ctx.Session.Guild(disgord.ParseSnowflakeString(bc.Config.GuildID)).Member(ctx.Message.Author.ID).Get()
+	if err != nil {
+		return 0
+	}
+
+	// Admin
+	if hasRole(member.Roles, bc.Config.AdminRoles) {
+		return 10
+	}
+
+	// Mod
+	if hasRole(member.Roles, bc.Config.ModRoles) {
+		return 5
+	}
+
+	return 0
+}
+
+func (bc *BaseCommand) isAllowed(permlvl int) []func(*gommand.Context) (string, bool) {
+	return []func(*gommand.Context) (string, bool){
+		func(ctx *gommand.Context) (string, bool) {
+			if bc.permLvl(ctx) >= permlvl {
+				return "", true
+			}
+
+			return "Sorry but you don't have permission to run this command", false
+		},
+	}
+
 }

@@ -16,10 +16,7 @@ type unban struct {
 func (c *unban) Init() {
 	c.Name = "unban"
 	c.Description = "Unbans a member"
-	c.PermissionValidators = []func(*gommand.Context) (string, bool){
-		c.isOwner(),
-		c.isAdmin(),
-	}
+	c.PermissionValidators = c.isAllowed(10)
 }
 
 func (c *unban) CommandFunction(ctx *gommand.Context) error {

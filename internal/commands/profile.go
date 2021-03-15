@@ -17,11 +17,7 @@ type profile struct {
 func (c *profile) Init() {
 	c.Name = "profile"
 	c.Description = "Gets a members profile"
-	c.PermissionValidators = []func(*gommand.Context) (string, bool){
-		c.isOwner(),
-		c.isAdmin(),
-		c.isMod(),
-	}
+	c.PermissionValidators = c.isAllowed(5)
 }
 
 func getBannedValue(banned bool) string {
