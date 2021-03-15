@@ -17,11 +17,11 @@ type profile struct {
 func (c *profile) Init() {
 	c.Name = "profile"
 	c.Description = "Gets a members profile"
-	//c.PermissionValidators = []func(*gommand.Context) (string, bool){
-	//	c.isOwner(),
-	//	c.isAdmin(),
-	//	c.isMod(),
-	//}
+	c.PermissionValidators = []func(*gommand.Context) (string, bool){
+		c.isOwner(),
+		c.isAdmin(),
+		c.isMod(),
+	}
 }
 
 func getBannedValue(banned bool) string {
@@ -83,50 +83,40 @@ func (c *profile) CommandFunction(ctx *gommand.Context) error {
 
 	fields := make([]*disgord.EmbedField, 0)
 
-	c.Logger.Info(fprofile)
-	c.Logger.Info(user)
-
 	fields = append(fields, &disgord.EmbedField{
 		Name:  "Discord Username",
 		Value: fmt.Sprintf("%s#%s", user.Username, user.Discriminator),
 	})
-	c.Logger.Info("Discord Username")
 
 	fields = append(fields, &disgord.EmbedField{
 		Name:  "Discord ID",
 		Value: user.ID.String(),
 	})
-	c.Logger.Info("Discord ID")
 
 	fields = append(fields, &disgord.EmbedField{
 		Name:  "Bungie ID",
 		Value: profile.Bungie,
 	})
-	c.Logger.Info("Bungie ID")
 
 	fields = append(fields, &disgord.EmbedField{
 		Name:  "Faceit Username",
 		Value: fprofile.Username,
 	})
-	c.Logger.Info("Faceit Username")
 
 	fields = append(fields, &disgord.EmbedField{
 		Name:  "Faceit GUID",
 		Value: fprofile.GUID,
 	})
-	c.Logger.Info("Faceit GUID")
 
 	fields = append(fields, &disgord.EmbedField{
 		Name:  "Faceit Skill Level",
 		Value: fmt.Sprintf("%d", fprofile.Level),
 	})
-	c.Logger.Info("Skill Level")
 
 	fields = append(fields, &disgord.EmbedField{
 		Name:  "Banned",
 		Value: getBannedValue(profile.Banned),
 	})
-	c.Logger.Info("Banned")
 
 	if profile.Banned && len(profile.BanReason) > 0 {
 		fields = append(fields, &disgord.EmbedField{
@@ -134,9 +124,8 @@ func (c *profile) CommandFunction(ctx *gommand.Context) error {
 			Value: profile.BanReason,
 		})
 	}
-	c.Logger.Info("BannedReason")
 
-	log.Info("Trying to fetch user hubs")
+	c.Logger.Info("Trying to fetch user hubs")
 	hubs, err := c.Faceit.GetUserHubs(profile.Faceit)
 	if err != nil {
 		log.Error(err)
