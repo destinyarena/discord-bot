@@ -17,11 +17,11 @@ type profile struct {
 func (c *profile) Init() {
 	c.Name = "profile"
 	c.Description = "Gets a members profile"
-	c.PermissionValidators = []func(*gommand.Context) (string, bool){
-		c.isOwner(),
-		c.isAdmin(),
-		c.isMod(),
-	}
+	//c.PermissionValidators = []func(*gommand.Context) (string, bool){
+	//	c.isOwner(),
+	//	c.isAdmin(),
+	//	c.isMod(),
+	//}
 }
 
 func getBannedValue(banned bool) string {
@@ -33,6 +33,7 @@ func getBannedValue(banned bool) string {
 }
 
 func (c *profile) CommandFunction(ctx *gommand.Context) error {
+	c.Logger.Info("PAIN")
 	var embed *disgord.Embed
 	var uid string
 
@@ -47,6 +48,7 @@ func (c *profile) CommandFunction(ctx *gommand.Context) error {
 		ctx.Reply(embed)
 		return err
 	}
+	c.Logger.Info("PAIN")
 
 	profile, err := c.Profiles.Get(uid)
 	if err != nil {
@@ -59,6 +61,7 @@ func (c *profile) CommandFunction(ctx *gommand.Context) error {
 		ctx.Reply(embed)
 		return err
 	}
+	c.Logger.Info("PAIN")
 
 	guild := ctx.Session.Guild(disgord.ParseSnowflakeString(c.Config.GuildID))
 	duser, err := guild.Member(disgord.ParseSnowflakeString(profile.Discord)).Get()
@@ -72,6 +75,7 @@ func (c *profile) CommandFunction(ctx *gommand.Context) error {
 		ctx.Reply(embed)
 		return err
 	}
+	c.Logger.Info("PAIN")
 
 	fprofile, err := c.Faceit.GetProfileByID(profile.Faceit)
 	if err != nil {
@@ -82,6 +86,7 @@ func (c *profile) CommandFunction(ctx *gommand.Context) error {
 			Level:    3,
 		}
 	}
+	c.Logger.Info("PAIN")
 
 	fields := make([]*disgord.EmbedField, 0)
 
