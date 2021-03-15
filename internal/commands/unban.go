@@ -21,11 +21,6 @@ func (c *unban) Init() {
 
 func (c *unban) CommandFunction(ctx *gommand.Context) error {
 	berr := false
-	guild := ctx.Session.Guild(disgord.ParseSnowflakeString(c.Config.GuildID))
-	if _, err := guild.Get(); err != nil {
-		ctx.Reply("Error fetching Guild ID")
-		return nil
-	}
 
 	uid, err := c.GetUID(ctx)
 	if err != nil {
@@ -39,7 +34,7 @@ func (c *unban) CommandFunction(ctx *gommand.Context) error {
 		return err
 	}
 
-	if err = guild.UnbanUser(disgord.ParseSnowflakeString(profile.Discord), "True Pain"); err != nil {
+	if err = ctx.Session.Guild(disgord.ParseSnowflakeString(c.Config.GuildID)).UnbanUser(disgord.ParseSnowflakeString(profile.Discord), "True Pain"); err != nil {
 		ctx.Reply("Error unbanning user from discord")
 		berr = true
 	}
