@@ -20,7 +20,7 @@ func (c *ban) Init() {
 }
 
 func (c *ban) CommandFunction(ctx *gommand.Context) error {
-	if 2 >= len(ctx.Args) {
+	if !(len(ctx.Args) >= 2) {
 		ctx.Reply("Sorry but you didn't provide enough arguments")
 		return nil
 	}
