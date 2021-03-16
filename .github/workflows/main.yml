@@ -42,12 +42,7 @@ jobs:
       with:
         repository: destinyarena/helm-charts
         token: ${{ secrets.DESTINYARENA_ACTIONS }}
-    - name: Installs yq
-      run: |
-        sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys CC86BB64
-        sudo add-apt-repository ppa:rmescandon/yq
-        sudo apt update
-        sudo apt install yq -y
+    - uses: chrisdickinson/setup-yq@latest
     - name: Update the Helm Chart values.yaml
       run: |
         yq w -i values.yaml ${{ env.APPNAME }}.image.tag ${{ github.sha }}
