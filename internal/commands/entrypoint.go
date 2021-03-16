@@ -23,9 +23,9 @@ func New(bot *bot.Bot, faceit faceit.Faceit, profiles profiles.Profiles, logger 
 		Logger:   logger,
 	}
 
-	//bot.SetCommand(&ban{BaseCommand: base})
-	//bot.SetCommand(&unban{BaseCommand: base})
-	//bot.SetCommand(&clear{BaseCommand: base})
+	bot.SetCommand(&ban{BaseCommand: base})
+	bot.SetCommand(&unban{BaseCommand: base})
+	bot.SetCommand(&clear{BaseCommand: base})
 	bot.SetCommand(&profile{BaseCommand: base})
 
 }
