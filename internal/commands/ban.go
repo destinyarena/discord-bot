@@ -2,7 +2,6 @@ package commands
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/andersfylling/disgord"
 	"github.com/auttaja/gommand"
@@ -29,10 +28,13 @@ func (c *ban) Init() {
 }
 
 func (c *ban) CommandFunction(ctx *gommand.Context) error {
-	// Setup logic
-	c.Logger.Info(len(ctx.Args))
-	args := c.StringArgs(ctx.Args)
-	reason := strings.Join(args[1:], " ")
+	uid, err := c.GetUID(ctx)
+	if err != nil {
+		ctx.Reply(err.Error())
+		return err
+	}
+
+	reason := ctx.Args[1].(string)
 	if len(reason) == 0 {
 		ctx.Reply("You must provide a ban reason: -ban <fid|did|bid|@|fname> <reason>")
 		return nil
@@ -42,12 +44,6 @@ func (c *ban) CommandFunction(ctx *gommand.Context) error {
 	if _, err := guild.Get(); err != nil {
 		ctx.Reply("Error fetching Guild ID")
 		return nil
-	}
-
-	uid, err := c.GetUID(ctx)
-	if err != nil {
-		ctx.Reply(err.Error())
-		return err
 	}
 
 	// Data fetching
