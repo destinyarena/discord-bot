@@ -1,7 +1,6 @@
 package commands
 
 import (
-	"errors"
 	"regexp"
 
 	"github.com/andersfylling/disgord"
@@ -15,25 +14,18 @@ func (bc *BaseCommand) GetUID(ctx *gommand.Context) (uid string, err error) {
 	if len(ctx.Message.Mentions) != 0 {
 		log.Info("Searching by Discord Mention")
 		uid = ctx.Message.Mentions[0].ID.String()
-	} else if len(ctx.Args) != 0 {
-		id := ctx.Args[0].(string)
-		log.Info(id)
-		if m, _ := regexp.Match(`^\d+$`, []byte(id)); m {
-			log.Info("Searching by Discord ID")
-			uid = id
-		} else if m, _ := regexp.Match(`^([A-f0-9\-])+$`, []byte(id)); m {
-			log.Info("Searching by faceit GUID")
-			uid = id
-		} else {
-			uid, err := bc.Faceit.GetIDByName(id)
-			if err != nil {
-				return "", err
-			}
-
-			return uid, nil
-		}
 	} else {
-		err = errors.New("Sorry but you must provide a way for us to find the user")
+		switch v := ctx.Args[0].(type) {
+		case *disgord.User:
+			return v.ID.String(), nil
+		case string:
+			if m, _ := regexp.Match(`^([A-f0-9\-])+$`, []byte(v)); m {
+				log.Info("Searching by faceit GUID")
+				return v, nil
+			} else {
+				return bc.Faceit.GetIDByName(v)
+			}
+		}
 	}
 
 	return uid, err
