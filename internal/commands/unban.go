@@ -19,8 +19,7 @@ func (c *unban) Init() {
 	c.PermissionValidators = c.isAllowed(10)
 	c.ArgTransformers = []gommand.ArgTransformer{
 		{
-			Function:  gommand.AnyTransformer(gommand.UserTransformer, gommand.StringTransformer),
-			Remainder: true,
+			Function: gommand.AnyTransformer(gommand.UserTransformer, gommand.StringTransformer),
 		},
 	}
 }

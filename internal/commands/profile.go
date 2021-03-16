@@ -20,8 +20,7 @@ func (c *profile) Init() {
 	c.PermissionValidators = c.isAllowed(5)
 	c.ArgTransformers = []gommand.ArgTransformer{
 		{
-			Function:  gommand.AnyTransformer(gommand.UserTransformer, gommand.StringTransformer),
-			Remainder: true,
+			Function: gommand.AnyTransformer(gommand.UserTransformer, gommand.StringTransformer),
 		},
 	}
 }
