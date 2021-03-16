@@ -18,6 +18,12 @@ func (c *profile) Init() {
 	c.Name = "profile"
 	c.Description = "Gets a members profile"
 	c.PermissionValidators = c.isAllowed(5)
+	c.ArgTransformers = []gommand.ArgTransformer{
+		{
+			Function:  gommand.AnyTransformer(gommand.UserTransformer, gommand.StringTransformer),
+			Remainder: true,
+		},
+	}
 }
 
 func getBannedValue(banned bool) string {

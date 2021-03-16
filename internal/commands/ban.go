@@ -17,6 +17,15 @@ func (c *ban) Init() {
 	c.Name = "ban"
 	c.Description = "Bans user from discord, faceit and bungie"
 	c.PermissionValidators = c.isAllowed(10)
+	c.ArgTransformers = []gommand.ArgTransformer{
+		{
+			Function: gommand.AnyTransformer(gommand.UserTransformer, gommand.StringTransformer),
+		},
+		{
+			Function:  gommand.StringTransformer,
+			Remainder: true,
+		},
+	}
 }
 
 func (c *ban) CommandFunction(ctx *gommand.Context) error {

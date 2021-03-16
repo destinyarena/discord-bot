@@ -14,6 +14,11 @@ func (c *clear) Init() {
 	c.Name = "clear"
 	c.Description = "Clears a user profile"
 	c.PermissionValidators = c.isAllowed(5)
+	c.ArgTransformers = []gommand.ArgTransformer{
+		{
+			Function: gommand.AnyTransformer(gommand.UserTransformer, gommand.StringTransformer),
+		},
+	}
 }
 
 func (c *clear) CommandFunction(ctx *gommand.Context) error {
