@@ -15,7 +15,7 @@ type unban struct {
 
 func (c *unban) Init() {
 	c.Name = "unban"
-	c.Description = "Unbans a member"
+	c.Description = "Unbans someone from discord, faceit and our database"
 	c.PermissionValidators = c.isAllowed(10)
 }
 
