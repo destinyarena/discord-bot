@@ -35,7 +35,7 @@ func New(bot *bot.Bot, faceit faceit.Faceit, profiles profiles.Profiles, log *lo
 
 	bot.Client.Gateway().BotReady(h.OnReady())
 	bot.Client.Gateway().GuildMemberAdd(h.OnMemberJoin())
-	//bot.Client.Gateway().MessageReactionAdd(h.OnMessageReactionAdd())
-	//bot.Client.Gateway().MessageReactionRemove(h.OnMessageReactionRemove())
+	bot.Client.Gateway().MessageReactionAdd(h.OnMessageReactionAdd())
+	bot.Client.Gateway().MessageReactionRemove(h.OnMessageReactionRemove())
 
 }
