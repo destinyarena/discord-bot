@@ -29,8 +29,8 @@ jobs:
       with:
         push: true
         tags: |
-          ghcr.io/destinyarena/${{ env.APPNAME }}:latest
-          ghcr.io/destinyarena/${{ env.APPNAME }}:${{ github.sha }}
+          ghcr.io/destinyarena/discord-bot:latest
+          ghcr.io/destinyarena/discord-bot:${{ github.sha }}
 
   deploy:
     name: Deploy
