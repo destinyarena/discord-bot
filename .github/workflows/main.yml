@@ -29,8 +29,8 @@ jobs:
       with:
         push: true
         tags: |
-          destinyarena/${{ env.APPNAME }}:latest
-          destinyarena/${{ env.APPNAME }}:${{ github.sha }}
+          ghcr.io/destinyarena/${{ env.APPNAME }}:latest
+          ghcr.io/destinyarena/${{ env.APPNAME }}:${{ github.sha }}
 
   deploy:
     name: Deploy
