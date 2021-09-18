@@ -47,9 +47,8 @@ func (c *profile) CommandFunction(ctx *gommand.Context) error {
 		return err
 	}
 
-	c.Logger.Infof("UID: %s", uid)
+	//c.Logger.Infof("UID: %s", uid)
 
-	c.Logger.Info("PAIN")
 	profile, err := c.Profiles.Get(uid)
 	if err != nil {
 		embed = &disgord.Embed{
