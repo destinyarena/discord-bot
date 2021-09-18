@@ -49,6 +49,7 @@ func (c *profile) CommandFunction(ctx *gommand.Context) error {
 
 	c.Logger.Infof("UID: %s", uid)
 
+	c.Logger.Info("PAIN")
 	profile, err := c.Profiles.Get(uid)
 	if err != nil {
 		embed = &disgord.Embed{
@@ -57,11 +58,10 @@ func (c *profile) CommandFunction(ctx *gommand.Context) error {
 			Color:       0xF30707,
 		}
 
+		c.Logger.Info("POGGERS")
 		ctx.Reply(embed)
 		return err
 	}
-
-	c.Logger.Info("PAIN")
 
 	user, err := ctx.Session.User(disgord.ParseSnowflakeString(profile.Discord)).Get()
 	if err != nil {
@@ -73,8 +73,6 @@ func (c *profile) CommandFunction(ctx *gommand.Context) error {
 		ctx.Reply(embed)
 		return err
 	}
-
-	c.Logger.Info("POGGERS")
 
 	fprofile, err := c.Faceit.GetProfileByID(profile.Faceit)
 	if err != nil {
