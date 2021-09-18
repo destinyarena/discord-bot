@@ -47,7 +47,7 @@ func (c *profile) CommandFunction(ctx *gommand.Context) error {
 		return err
 	}
 
-	//c.Logger.Infof("UID: %s", uid)
+	c.Logger.Infof("UID: %s", uid)
 
 	profile, err := c.Profiles.Get(uid)
 	if err != nil {
@@ -57,7 +57,7 @@ func (c *profile) CommandFunction(ctx *gommand.Context) error {
 			Color:       0xF30707,
 		}
 
-		c.Logger.Info("POGGERS")
+		c.Logger.Info("Error when getting profile")
 		ctx.Reply(embed)
 		return err
 	}
@@ -69,12 +69,14 @@ func (c *profile) CommandFunction(ctx *gommand.Context) error {
 			Description: "Error fetching Profile",
 			Color:       0xf30707,
 		}
+		c.Logger.Info("Error when getting user")
 		ctx.Reply(embed)
 		return err
 	}
 
 	fprofile, err := c.Faceit.GetProfileByID(profile.Faceit)
 	if err != nil {
+		c.Logger.Info("Error when getting faceit profile")
 		c.Logger.Error(err)
 		fprofile = &faceit.Profile{
 			GUID:     profile.Faceit,
