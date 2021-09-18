@@ -92,7 +92,7 @@ func (c *ban) CommandFunction(ctx *gommand.Context) error {
 		} else {
 			fields = append(fields, &disgord.EmbedField{
 				Name:  "Successful Hub Ban",
-				Value: fmt.Sprintf("%s", hub.Name),
+				Value: hub.Name,
 			})
 		}
 	}

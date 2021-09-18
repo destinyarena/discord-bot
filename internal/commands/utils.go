@@ -40,7 +40,7 @@ func (bc *BaseCommand) StringArgs(args []interface{}) []string {
 	return sargs
 }
 
-var permFunc func(ctx *gommand.Context) (string, bool)
+//var permFunc func(ctx *gommand.Context) (string, bool)
 
 func inStringSlice(slice []string, item string) bool {
 	for _, v := range slice {

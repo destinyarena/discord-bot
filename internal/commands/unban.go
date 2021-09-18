@@ -55,7 +55,7 @@ func (c *unban) CommandFunction(ctx *gommand.Context) error {
 		}
 	}
 
-	if berr == false {
+	if !berr {
 		ctx.Reply("Unbanned user successfully")
 	}
 
