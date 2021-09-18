@@ -61,6 +61,8 @@ func (c *profile) CommandFunction(ctx *gommand.Context) error {
 		return err
 	}
 
+	c.Logger.Info("PAIN")
+
 	user, err := ctx.Session.User(disgord.ParseSnowflakeString(profile.Discord)).Get()
 	if err != nil {
 		embed = &disgord.Embed{
@@ -71,6 +73,8 @@ func (c *profile) CommandFunction(ctx *gommand.Context) error {
 		ctx.Reply(embed)
 		return err
 	}
+
+	c.Logger.Info("POGGERS")
 
 	fprofile, err := c.Faceit.GetProfileByID(profile.Faceit)
 	if err != nil {
