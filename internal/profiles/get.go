@@ -12,10 +12,6 @@ func (p *profiles) Get(id string) (*Profile, error) {
 		return nil, err
 	}
 
-	p.Logger.Info(client)
-	p.Logger.Info(conn)
-	p.Logger.Info(err)
-
 	defer conn.Close()
 
 	p.Logger.Infof("Getting Database profile for: %s", id)
