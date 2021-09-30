@@ -62,6 +62,8 @@ func (c *profile) CommandFunction(ctx *gommand.Context) error {
 		return err
 	}
 
+	c.Logger.Info("Got user profile")
+
 	user, err := ctx.Session.User(disgord.ParseSnowflakeString(profile.Discord)).Get()
 	if err != nil {
 		embed = &disgord.Embed{
