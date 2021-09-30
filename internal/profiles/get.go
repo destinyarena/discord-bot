@@ -7,11 +7,14 @@ import (
 )
 
 func (p *profiles) Get(id string) (*Profile, error) {
-	p.Logger.Info("Getting profile")
 	client, conn, err := p.conn()
 	if err != nil {
 		return nil, err
 	}
+
+	p.Logger.Info(client)
+	p.Logger.Info(conn)
+	p.Logger.Info(err)
 
 	defer conn.Close()
 
