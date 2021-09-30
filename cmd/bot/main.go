@@ -59,6 +59,8 @@ func main() {
 		log.Fatal(err)
 	}
 
+	log.Info(cfg.Profiles)
+
 	pclient, err := profiles.New(log, cfg.Profiles)
 	if err != nil {
 		log.Fatal(err)
