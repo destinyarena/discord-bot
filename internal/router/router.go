@@ -1,15 +1,15 @@
 package router
 
 import (
+	"fmt"
+
 	"github.com/bwmarrin/discordgo"
 )
 
 type (
-	HandlerFunc func(s *discordgo.Session, i *discordgo.InteractionCreate)
-
 	Router interface {
 		// Discordgo interaction handler
-		Handler() HandlerFunc
+		Handler(s *discordgo.Session, i *discordgo.InteractionCreate)
 		// Syncs slash commands with discord
 		Sync(s *discordgo.Session) error
 		// Registers commands to the router
@@ -30,40 +30,52 @@ func New() (Router, error) {
 }
 
 // Handler is registered with discordgo to handle all interaction events
-func (r *router) Handler() HandlerFunc {
-	return func(s *discordgo.Session, i *discordgo.InteractionCreate) {
-		if i.Type != discordgo.InteractionApplicationCommand {
-			return
+func (r *router) Handler(s *discordgo.Session, i *discordgo.InteractionCreate) {
+	if i.Type != discordgo.InteractionApplicationCommand {
+		return
+	}
+
+	data := i.ApplicationCommandData()
+	fmt.Printf("Got command %s\n", data.Name)
+
+	if h, ok := r.commands[data.Name]; ok {
+
+		ctx := &Context{
+			Session:           s,
+			Interaction:       i.Interaction,
+			InteractionCreate: i,
+			Options:           make(map[string]*discordgo.ApplicationCommandInteractionDataOption),
 		}
 
-		data := i.ApplicationCommandData()
-
-		if h, ok := r.commands[data.Name]; ok {
-			ctx := &Context{
-				Session:     s,
-				Interaction: i,
-			}
-
-			// Handle subcommands
-			if len(data.Options) != 0 {
+		// Handle subcommands
+		if len(data.Options) != 0 {
+			switch data.Options[0].Type {
+			case discordgo.ApplicationCommandOptionSubCommand:
 				if sub, ok := h.GetSubCommand(data.Options[0].Name); ok {
-					if len(data.Options[0].Options) != 0 {
-						if sub, ok = sub.GetSubCommand(data.Options[0].Options[0].Name); ok {
-							h = sub
-						} else {
-							return
-						}
-					} else {
-						h = sub
+					for _, o := range data.Options[0].Options {
+						ctx.Options[o.Name] = o
 					}
-				} else {
+					go sub.Handler(ctx)
 					return
 				}
+			case discordgo.ApplicationCommandOptionSubCommandGroup:
+				if group, ok := h.GetSubCommandGroup(data.Options[0].Name); ok {
+					if sub, ok := group.GetSubCommand(data.Options[0].Options[0].Name); ok {
+						for _, o := range data.Options[0].Options[0].Options {
+							ctx.Options[o.Name] = o
+						}
+						go sub.Handler(ctx)
+						return
+					}
+				}
 			}
-
-			h.Handler(ctx)
-
 		}
+
+		for _, o := range data.Options {
+			ctx.Options[o.Name] = o
+		}
+
+		go h.Handler(ctx)
 	}
 }
 
@@ -74,8 +86,17 @@ func (r *router) Sync(s *discordgo.Session) error {
 		commands = append(commands, c.GetApplicationCommand())
 	}
 
-	_, err := s.ApplicationCommandBulkOverwrite(s.State.User.ID, "", commands)
-	return err
+	cmds, err := s.ApplicationCommandBulkOverwrite(s.State.User.ID, "", commands)
+	if err != nil {
+		return err
+	}
+
+	for _, c := range cmds {
+		fmt.Println("Registered command", c.Name)
+	}
+
+	return nil
+
 }
 
 func (r *router) RegisterCommands(commands ...CommandInterface) {
