@@ -107,15 +107,13 @@ func (c *BaseCommand) GetApplicationCommand() *discordgo.ApplicationCommand {
 		ac.Options = options
 	}
 
+	ac.Options = append(ac.Options, options...)
+
 	return ac
 }
 
 func (c *BaseSubCommandGroup) GetName() string {
 	return c.Name
-}
-
-func (c *BaseSubCommandGroup) GetDescription() string {
-	return c.Description
 }
 
 func (c *BaseSubCommandGroup) GetSubCommands() []SubCommandInterface {
