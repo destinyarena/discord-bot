@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/bwmarrin/discordgo"
-	"github.com/destinyarena/discord-bot/internal/router"
+	"github.com/destinyarena/discord-bot/pkg/router"
 )
 
 type (

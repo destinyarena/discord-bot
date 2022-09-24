@@ -1,6 +1,6 @@
 package commands
 
-import "github.com/destinyarena/discord-bot/internal/router"
+import "github.com/destinyarena/discord-bot/pkg/router"
 
 func New() (router.Router, error) {
 	r, _ := router.New()
