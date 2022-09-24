@@ -27,7 +27,7 @@ func main() {
 		panic(err)
 	}
 
-	if err := router.Sync(session); err != nil {
+	if err := router.Sync(session, ""); err != nil {
 		panic(err)
 	}
 

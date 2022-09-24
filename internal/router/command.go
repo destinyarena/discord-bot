@@ -1,160 +1,151 @@
 package router
 
-import (
-	"fmt"
-
-	"github.com/bwmarrin/discordgo"
-)
+import "github.com/bwmarrin/discordgo"
 
 type (
+	CommandOption discordgo.ApplicationCommandOption
+
+	Command struct {
+		Name                string
+		Description         string
+		SubCommandGroups    map[string]*Group
+		SubCommands         map[string]*Command
+		Options             []*CommandOption
+		Handler             HandlerFunc
+		DefaultPermmissions *int64
+		DefaultPermmission  *bool
+	}
+
+	Group struct {
+		Name        string
+		Description string
+		SubCommands map[string]*Command
+	}
+
+	GroupInterface interface {
+	}
+
 	CommandInterface interface {
-		GetName() string
-		GetSubCommandGroups() []SubCommandGroupInterface
-		GetSubCommandGroup(name string) (SubCommandGroupInterface, bool)
-		GetSubCommands() []SubCommandInterface
-		GetSubCommand(name string) (SubCommandInterface, bool)
-		GetApplicationCommand() *discordgo.ApplicationCommand
-		Handler(ctx *Context)
-	}
-
-	SubCommandGroupInterface interface {
-		GetName() string
-		GetSubCommands() []SubCommandInterface
-		GetSubCommand(name string) (SubCommandInterface, bool)
-		GetApplicationCommandOption() *discordgo.ApplicationCommandOption
-	}
-
-	SubCommandInterface interface {
-		GetName() string
-		GetApplicationCommandOption() *discordgo.ApplicationCommandOption
-		Handler(ctx *Context)
-	}
-
-	BaseCommand struct {
-		Name             string
-		Description      string
-		SubCommands      []SubCommandInterface
-		SubCommandGroups []SubCommandGroupInterface
-		Options          []*discordgo.ApplicationCommandOption
-	}
-
-	BaseSubCommandGroup struct {
-		Name        string
-		Description string
-		SubCommands []SubCommandInterface
-	}
-
-	BaseSubCommand struct {
-		Name        string
-		Description string
-		Options     []*discordgo.ApplicationCommandOption
+		Command() *Command
 	}
 )
 
-func (c *BaseCommand) GetName() string {
-	return c.Name
-}
+func convertOptions(options []*CommandOption) []*discordgo.ApplicationCommandOption {
+	converted := make([]*discordgo.ApplicationCommandOption, len(options))
 
-func (c *BaseCommand) GetSubCommands() []SubCommandInterface {
-	return c.SubCommands
-}
-
-func (c *BaseCommand) GetSubCommand(name string) (SubCommandInterface, bool) {
-	for _, sub := range c.SubCommands {
-		if sub.GetName() == name {
-			return sub, true
-		}
+	for i, o := range options {
+		converted[i] = (*discordgo.ApplicationCommandOption)(o)
 	}
 
-	return nil, false
+	return converted
 }
 
-func (c *BaseCommand) GetSubCommandGroups() []SubCommandGroupInterface {
-	return c.SubCommandGroups
-}
-
-func (c *BaseCommand) GetSubCommandGroup(name string) (SubCommandGroupInterface, bool) {
-	for _, sub := range c.SubCommandGroups {
-		if sub.GetName() == name {
-			return sub, true
-		}
-	}
-
-	return nil, false
-}
-
-func (c *BaseCommand) GetApplicationCommand() *discordgo.ApplicationCommand {
-	ac := &discordgo.ApplicationCommand{
-		Name:        c.Name,
-		Description: c.Description,
-		Type:        discordgo.ChatApplicationCommand,
-		Options:     c.Options,
-	}
-
+func (c *Command) ApplicationCommand() *discordgo.ApplicationCommand {
 	options := make([]*discordgo.ApplicationCommandOption, 0)
 
-	for _, subcommand := range c.SubCommands {
-		fmt.Println("Adding subcommand", subcommand.GetName())
-		options = append(options, subcommand.GetApplicationCommandOption())
-	}
+	if len(c.SubCommands) > 0 || len(c.SubCommandGroups) > 0 {
+		for _, g := range c.SubCommandGroups {
+			goptions := make([]*discordgo.ApplicationCommandOption, 0)
 
-	for _, subcommandGroup := range c.SubCommandGroups {
-		fmt.Println("Adding subcommand group", subcommandGroup.GetName())
-		options = append(options, subcommandGroup.GetApplicationCommandOption())
-	}
+			for _, s := range g.SubCommands {
+				goptions = append(goptions, &discordgo.ApplicationCommandOption{
+					Type:        discordgo.ApplicationCommandOptionSubCommand,
+					Name:        s.Name,
+					Description: s.Description,
+					Options:     convertOptions(s.Options),
+				})
+			}
 
-	if len(options) > 0 {
-		ac.Options = options
-	}
-
-	ac.Options = append(ac.Options, options...)
-
-	return ac
-}
-
-func (c *BaseSubCommandGroup) GetName() string {
-	return c.Name
-}
-
-func (c *BaseSubCommandGroup) GetSubCommands() []SubCommandInterface {
-	return c.SubCommands
-}
-
-func (c *BaseSubCommandGroup) GetSubCommand(name string) (SubCommandInterface, bool) {
-	for _, sub := range c.SubCommands {
-		if sub.GetName() == name {
-			return sub, true
+			options = append(options, &discordgo.ApplicationCommandOption{
+				Type:        discordgo.ApplicationCommandOptionSubCommandGroup,
+				Name:        g.Name,
+				Description: g.Description,
+				Options:     goptions,
+			})
 		}
+
+		for _, c := range c.SubCommands {
+			options = append(options, &discordgo.ApplicationCommandOption{
+				Type:        discordgo.ApplicationCommandOptionSubCommand,
+				Name:        c.Name,
+				Description: c.Description,
+				Options:     convertOptions(c.Options),
+			})
+		}
+
+	} else {
+		options = append(options, convertOptions(c.Options)...)
 	}
 
-	return nil, false
+	return &discordgo.ApplicationCommand{
+		Name:                     c.Name,
+		Description:              c.Description,
+		DefaultMemberPermissions: c.DefaultPermmissions,
+		DMPermission:             c.DefaultPermmission,
+		Options:                  options,
+	}
 }
 
-func (c *BaseSubCommandGroup) GetApplicationCommandOption() *discordgo.ApplicationCommandOption {
-	options := make([]*discordgo.ApplicationCommandOption, 0)
-
-	for _, subcommand := range c.SubCommands {
-		fmt.Println("Adding subcommand", subcommand.GetName(), "to group", c.Name)
-		options = append(options, subcommand.GetApplicationCommandOption())
+func (c *Command) AddSubCommandGroup(name, description string) *Group {
+	if c.SubCommandGroups == nil {
+		c.SubCommandGroups = make(map[string]*Group)
 	}
 
-	return &discordgo.ApplicationCommandOption{
-		Name:        c.Name,
-		Description: c.Description,
-		Type:        discordgo.ApplicationCommandOptionSubCommandGroup,
+	c.SubCommandGroups[name] = &Group{
+		Name:        name,
+		Description: description,
+		SubCommands: make(map[string]*Command),
+	}
+
+	return c.SubCommandGroups[name]
+}
+
+func (c *Command) GetSubCommandGroup(name string) *Group {
+	if c.SubCommandGroups == nil {
+		return nil
+	}
+
+	return c.SubCommandGroups[name]
+}
+
+func (c *Command) AddSubCommand(name, description string, options []*CommandOption, handler HandlerFunc) {
+	if c.SubCommands == nil {
+		c.SubCommands = make(map[string]*Command)
+	}
+
+	c.SubCommands[name] = &Command{
+		Name:        name,
+		Description: description,
 		Options:     options,
+		Handler:     handler,
 	}
 }
 
-func (c *BaseSubCommand) GetName() string {
-	return c.Name
+func (c *Command) GetSubCommand(name string) *Command {
+	if c.SubCommands == nil {
+		return nil
+	}
+
+	return c.SubCommands[name]
 }
 
-func (c *BaseSubCommand) GetApplicationCommandOption() *discordgo.ApplicationCommandOption {
-	return &discordgo.ApplicationCommandOption{
-		Name:        c.Name,
-		Description: c.Description,
-		Type:        discordgo.ApplicationCommandOptionSubCommand,
-		Options:     c.Options,
+func (g *Group) AddSubCommand(name, description string, options []*CommandOption, handler HandlerFunc) {
+	if g.SubCommands == nil {
+		g.SubCommands = make(map[string]*Command)
 	}
+
+	g.SubCommands[name] = &Command{
+		Name:        name,
+		Description: description,
+		Options:     options,
+		Handler:     handler,
+	}
+}
+
+func (g *Group) GetSubCommand(name string) *Command {
+	if g.SubCommands == nil {
+		return nil
+	}
+
+	return g.SubCommands[name]
 }
