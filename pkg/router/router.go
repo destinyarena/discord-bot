@@ -8,9 +8,7 @@ import (
 
 type (
 	HandlerFunc func(ctx *Context)
-
-	Component struct{}
-	Module    interface {
+	Module      interface {
 		Commands() []*Command
 		Components() []*Component
 	}
@@ -21,17 +19,23 @@ type (
 		Sync(s *discordgo.Session, guildid string) error
 		// Registers commands to the router
 		RegisterCommands(commands ...*Command)
+		// Registers component handler to the router
+		RegisterComponents(components ...*Component)
 		// Registers modules which may include commands and components
 		RegisterModules(m ...Module)
 	}
 	router struct {
-		commands map[string]*Command
+		commands   map[string]*Command
+		components map[string]*Component
+		modals     map[string]*Modal
 	}
 )
 
 func New() (Router, error) {
 	r := &router{
-		commands: make(map[string]*Command),
+		commands:   make(map[string]*Command),
+		components: make(map[string]*Component),
+		modals:     make(map[string]*Modal),
 	}
 
 	return r, nil
@@ -46,12 +50,17 @@ func (r *router) RegisterModules(m ...Module) {
 // Handler is registered with discordgo to handle all interaction events
 func (r *router) Handler(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	switch i.Type {
+	case discordgo.InteractionPing:
+		r.handlePing(s, i)
 	case discordgo.InteractionApplicationCommand:
-		r.handleCommand(s, i)
+		r.handleApplicationCommand(s, i)
 	case discordgo.InteractionMessageComponent:
-		r.handleComponent(s, i)
-	default:
-		fmt.Printf("Unknown interaction type: %d\n", i.Type)
+		r.handleMessageComponent(s, i)
+	case discordgo.InteractionApplicationCommandAutocomplete:
+		r.handleCommandAutocomplete(s, i)
+	case discordgo.InteractionModalSubmit:
+		//r.handleModalSubmit(s, i)
+		fmt.Println("TODO")
 	}
 }
 
@@ -82,6 +91,12 @@ func (r *router) RegisterCommands(commands ...*Command) {
 	}
 }
 
+func (r *router) RegisterComponents(components ...*Component) {
+	for _, c := range components {
+		r.components[c.Name] = c
+	}
+}
+
 func convertOptionsToMap(options []*discordgo.ApplicationCommandInteractionDataOption) map[string]*discordgo.ApplicationCommandInteractionDataOption {
 	m := make(map[string]*discordgo.ApplicationCommandInteractionDataOption)
 	for _, o := range options {
@@ -91,7 +106,13 @@ func convertOptionsToMap(options []*discordgo.ApplicationCommandInteractionDataO
 	return m
 }
 
-func (r *router) handleCommand(s *discordgo.Session, i *discordgo.InteractionCreate) {
+func (r *router) handlePing(s *discordgo.Session, i *discordgo.InteractionCreate) {
+	s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+		Type: discordgo.InteractionResponsePong,
+	})
+}
+
+func (r *router) handleApplicationCommand(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	data := i.ApplicationCommandData()
 	c, ok := r.commands[data.Name]
 	if !ok {
@@ -100,10 +121,9 @@ func (r *router) handleCommand(s *discordgo.Session, i *discordgo.InteractionCre
 	}
 
 	ctx := &Context{
-		Session:           s,
-		Interaction:       i.Interaction,
-		InteractionCreate: i,
-		Options:           make(map[string]*discordgo.ApplicationCommandInteractionDataOption),
+		Session:     s,
+		Interaction: i.Interaction,
+		Options:     make(map[string]*discordgo.ApplicationCommandInteractionDataOption),
 	}
 
 	var handler HandlerFunc
@@ -130,6 +150,21 @@ func (r *router) handleCommand(s *discordgo.Session, i *discordgo.InteractionCre
 	go handler(ctx)
 }
 
-func (r *router) handleComponent(s *discordgo.Session, i *discordgo.InteractionCreate) {
+func (r *router) handleMessageComponent(s *discordgo.Session, i *discordgo.InteractionCreate) {
+	data := i.MessageComponentData()
+	fmt.Printf("Received component: %s\n", data.CustomID)
 
+	if c, ok := r.components[data.CustomID]; ok {
+		ctx := &ComponentContext{
+			Session:     s,
+			Interaction: i.Interaction,
+			Message:     i.Message,
+		}
+
+		go c.Handler(ctx)
+	}
+}
+
+func (r *router) handleCommandAutocomplete(s *discordgo.Session, i *discordgo.InteractionCreate) {
+	// todo
 }
