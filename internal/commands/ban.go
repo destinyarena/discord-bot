@@ -21,7 +21,7 @@ func (c *ban) discordHandler(ctx *router.Context) {
 
 	reason := ctx.Options["reason"].StringValue()
 
-	ctx.Reply(fmt.Sprintf("Discord ID: %s Discord Username: %s Reasion: %s", user.ID, user.Username, reason))
+	ctx.Reply(fmt.Sprintf("Discord ID: %s Discord Username: %s Reasion: %s", user.ID, user.Username, reason), nil, nil)
 }
 
 func (c *ban) faceitHandler(ctx *router.Context) {
@@ -30,14 +30,14 @@ func (c *ban) faceitHandler(ctx *router.Context) {
 	user := ctx.Options["user"].StringValue()
 	reason := ctx.Options["reason"].StringValue()
 
-	ctx.Reply(fmt.Sprintf("Faceit ID: %s Reasion: %s", user, reason))
+	ctx.Reply(fmt.Sprintf("Faceit ID: %s Reasion: %s", user, reason), nil, nil)
 }
 
 func (c *ban) bungieHandler(ctx *router.Context) {
 	fmt.Println("Reached ban bungie sub command")
 	user := ctx.Options["id"].StringValue()
 	reason := ctx.Options["reason"].StringValue()
-	ctx.Reply(fmt.Sprintf("Bungie ID: %s Reasion: %s", user, reason))
+	ctx.Reply(fmt.Sprintf("Bungie ID: %s Reasion: %s", user, reason), nil, nil)
 }
 
 func (c *ban) Command() *router.Command {

@@ -7,6 +7,7 @@ import (
 
 	"github.com/bwmarrin/discordgo"
 	"github.com/destinyarena/discord-bot/internal/commands"
+	"github.com/destinyarena/discord-bot/pkg/router"
 )
 
 func main() {
@@ -15,8 +16,12 @@ func main() {
 		panic(err)
 	}
 
-	router, err := commands.New()
+	router, err := router.NewRouter()
 	if err != nil {
+		panic(err)
+	}
+
+	if _, err = commands.New(router); err != nil {
 		panic(err)
 	}
 

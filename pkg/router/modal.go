@@ -1,6 +1,7 @@
 package router
 
 type (
-	Modal struct {
+	ModalHandlerFunc func(ctx *Context)
+	Modal            struct {
 	}
 )

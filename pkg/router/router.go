@@ -2,53 +2,59 @@ package router
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/bwmarrin/discordgo"
 )
 
 type (
-	HandlerFunc func(ctx *Context)
-	Module      interface {
-		Commands() []*Command
-		Components() []*Component
-	}
-	Router interface {
+	RouterInterface interface {
 		// Discordgo interaction handler
 		Handler(s *discordgo.Session, i *discordgo.InteractionCreate)
+
+		// PreRoute Handlers
+		AddPreRoute(h ...PreRouteInterface) (*PreRouteContext, error)
+
 		// Syncs slash commands with discord
 		Sync(s *discordgo.Session, guildid string) error
-		// Registers commands to the router
-		RegisterCommands(commands ...*Command)
-		// Registers component handler to the router
-		RegisterComponents(components ...*Component)
-		// Registers modules which may include commands and components
-		RegisterModules(m ...Module)
+
+		// Registers Global Commands
+		AddCommands(commands ...*Command) error
+
+		// Updates registered commands
+		UpdateCommands(commands ...*Command) error
+
+		// Adds Guild Commands
+		AddGuildCommands(guildid string, commands ...*Command) error
+		UpdateGuildCommands(guildid string, commands ...*Command) error
+
+		// Registers Button
+		AddComponents(components ...*Component) error
+
+		// Register Modal
+		AddModals(modals ...*Modal) error
+
+		// Registers Modules
+		RegisterModules(m ...Module) error
 	}
-	router struct {
+	Router struct {
 		commands   map[string]*Command
 		components map[string]*Component
-		modals     map[string]*Modal
+		guilds     map[string]map[string]*Command
 	}
 )
 
-func New() (Router, error) {
-	r := &router{
+func NewRouter() (Router, error) {
+	r := &Router{
 		commands:   make(map[string]*Command),
 		components: make(map[string]*Component),
-		modals:     make(map[string]*Modal),
 	}
 
 	return r, nil
 }
 
-func (r *router) RegisterModules(m ...Module) {
-	for _, mod := range m {
-		r.RegisterCommands(mod.Commands()...)
-	}
-}
-
 // Handler is registered with discordgo to handle all interaction events
-func (r *router) Handler(s *discordgo.Session, i *discordgo.InteractionCreate) {
+func (r *Router) Handler(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	switch i.Type {
 	case discordgo.InteractionPing:
 		r.handlePing(s, i)
@@ -65,54 +71,43 @@ func (r *router) Handler(s *discordgo.Session, i *discordgo.InteractionCreate) {
 }
 
 // Sync syncs all commands and subcommands with discord
-func (r *router) Sync(s *discordgo.Session, guildid string) error {
-	commands := make([]*discordgo.ApplicationCommand, 0)
-	for _, c := range r.commands {
-		commands = append(commands, c.ApplicationCommand())
+func (r *Router) Sync(s *discordgo.Session, guildid string) error {
+	var appcmds []*discordgo.ApplicationCommand
+
+	if guildid != "" {
+		cmds, ok := r.guilds[guildid]
+		if !ok {
+			return fmt.Errorf("no commands registered for guild: %s", guildid)
+		}
+		for _, c := range cmds {
+			appcmds = append(appcmds, c.ToApplicationCommand())
+		}
+	} else {
+		for _, c := range r.commands {
+			appcmds = append(appcmds, c.ToApplicationCommand())
+		}
 	}
 
-	cmds, err := s.ApplicationCommandBulkOverwrite(s.State.User.ID, guildid, commands)
+	uappcmds, err := s.ApplicationCommandBulkOverwrite(s.State.User.ID, guildid, appcmds)
 	if err != nil {
 		return err
 	}
 
-	for _, c := range cmds {
-		fmt.Println("Registered command", c.Name)
+	for _, c := range uappcmds {
+		fmt.Println("Synced command", c.Name)
 	}
 
 	return nil
 
 }
 
-func (r *router) RegisterCommands(commands ...*Command) {
-
-	for _, c := range commands {
-		r.commands[c.Name] = c
-	}
-}
-
-func (r *router) RegisterComponents(components ...*Component) {
-	for _, c := range components {
-		r.components[c.Name] = c
-	}
-}
-
-func convertOptionsToMap(options []*discordgo.ApplicationCommandInteractionDataOption) map[string]*discordgo.ApplicationCommandInteractionDataOption {
-	m := make(map[string]*discordgo.ApplicationCommandInteractionDataOption)
-	for _, o := range options {
-		m[o.Name] = o
-	}
-
-	return m
-}
-
-func (r *router) handlePing(s *discordgo.Session, i *discordgo.InteractionCreate) {
+func (r *Router) handlePing(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponsePong,
 	})
 }
 
-func (r *router) handleApplicationCommand(s *discordgo.Session, i *discordgo.InteractionCreate) {
+func (r *Router) handleApplicationCommand(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	data := i.ApplicationCommandData()
 	c, ok := r.commands[data.Name]
 	if !ok {
@@ -150,21 +145,63 @@ func (r *router) handleApplicationCommand(s *discordgo.Session, i *discordgo.Int
 	go handler(ctx)
 }
 
-func (r *router) handleMessageComponent(s *discordgo.Session, i *discordgo.InteractionCreate) {
+func (r *Router) handleMessageComponent(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	data := i.MessageComponentData()
 	fmt.Printf("Received component: %s\n", data.CustomID)
 
-	if c, ok := r.components[data.CustomID]; ok {
-		ctx := &ComponentContext{
-			Session:     s,
-			Interaction: i.Interaction,
-			Message:     i.Message,
+	slice := strings.Split(data.CustomID, "-")
+	if component, ok := r.components[slice[0]]; ok && (len(component.Args) == (len(slice) - 1)) {
+		fmt.Printf("Found component: %s\n", slice[0])
+
+		args := make(map[string]*ComponentArgument, 0)
+
+		for idx, arg := range component.Args {
+			var value interface{}
+
+			fmt.Println("Args for component:", component.Name, slice[1:])
+
+			switch arg.Type {
+			case ComponentArgumentTypeString:
+				value = string(slice[idx+1])
+			case ComponentArgumentTypeUser:
+				value, _ = s.User(slice[idx+1])
+			case ComponentArgumentTypeChannel:
+				value, _ = s.Channel(slice[idx+1])
+			case ComponentArgumentTypeRole:
+				value, _ = s.State.Role(i.GuildID, slice[idx+1])
+			}
+
+			args[arg.Name] = &ComponentArgument{
+				Name:  arg.Name,
+				Value: value,
+				Type:  arg.Type,
+			}
 		}
 
-		go c.Handler(ctx)
+		ctx := &ComponentContext{
+			Context: Context{
+				Session:     s,
+				Interaction: i.Interaction,
+				Message:     i.Message,
+			},
+			CustomID: data.CustomID,
+			Args:     args,
+		}
+
+		go component.Handler(ctx)
+
+	} else {
+		s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+			Type: discordgo.InteractionResponseChannelMessageWithSource,
+			Data: &discordgo.InteractionResponseData{
+				Flags:   discordgo.MessageFlagsEphemeral,
+				Content: "Invalid component",
+			},
+		})
+
 	}
 }
 
-func (r *router) handleCommandAutocomplete(s *discordgo.Session, i *discordgo.InteractionCreate) {
+func (r *Router) handleCommandAutocomplete(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	// todo
 }

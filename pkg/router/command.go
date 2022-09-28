@@ -3,44 +3,70 @@ package router
 import "github.com/bwmarrin/discordgo"
 
 type (
-	CommandOption discordgo.ApplicationCommandOption
+	HandlerFunc      func(ctx *Context)
+	CommandOption    discordgo.ApplicationCommandOption
+	CommandInterface interface {
+		GetName() string
+		GetDescription() string
+		GetHandler() HandlerFunc
+		GetSubCommands() []*SubCommand
+		GetSubCommandGroups() []*SubCommandGroup
+		GetOptions() []*CommandOption
+		GetDMPermission() bool
+		GetDefaultPermmissions() uint64
+		ToApplicationCommand() *discordgo.ApplicationCommand
+	}
+
+	SubCommandGroupInterface interface {
+		GetName() string
+		GetDescription() string
+		GetSubCommands() []*SubCommand
+	}
+
+	SubCommandInterface interface {
+		GetName() string
+		GetDescription() string
+		GetHandler() HandlerFunc
+		GetOptions() []*CommandOption
+	}
 
 	Command struct {
 		Name                string
 		Description         string
-		SubCommandGroups    map[string]*Group
-		SubCommands         map[string]*Command
+		SubCommandGroups    map[string]SubCommandGroupInterface
+		SubCommands         map[string]SubCommandInterface
 		Options             []*CommandOption
 		Handler             HandlerFunc
 		DefaultPermmissions *int64
-		DefaultPermmission  *bool
+		DMPermmission       *bool
 	}
 
-	Group struct {
+	SubCommandGroup struct {
 		Name        string
 		Description string
-		SubCommands map[string]*Command
+		SubCommands map[string]SubCommandInterface
 	}
 
-	GroupInterface interface {
-	}
-
-	CommandInterface interface {
-		Command() *Command
+	SubCommand struct {
+		Name        string
+		Description string
+		Options     []*CommandOption
+		Handler     HandlerFunc
 	}
 )
 
-func convertOptions(options []*CommandOption) []*discordgo.ApplicationCommandOption {
-	converted := make([]*discordgo.ApplicationCommandOption, len(options))
-
-	for i, o := range options {
-		converted[i] = (*discordgo.ApplicationCommandOption)(o)
+func NewCommand(name string, description string, handler HandlerFunc) *Command {
+	return &Command{
+		Name:             name,
+		Description:      description,
+		Handler:          handler,
+		SubCommands:      make(map[string]SubCommandInterface),
+		SubCommandGroups: make(map[string]SubCommandGroupInterface),
+		Options:          make([]*CommandOption, 0),
 	}
-
-	return converted
 }
 
-func (c *Command) ApplicationCommand() *discordgo.ApplicationCommand {
+func (c *Command) ToApplicationCommand() *discordgo.ApplicationCommand {
 	options := make([]*discordgo.ApplicationCommandOption, 0)
 
 	if len(c.SubCommands) > 0 || len(c.SubCommandGroups) > 0 {
@@ -81,7 +107,7 @@ func (c *Command) ApplicationCommand() *discordgo.ApplicationCommand {
 		Name:                     c.Name,
 		Description:              c.Description,
 		DefaultMemberPermissions: c.DefaultPermmissions,
-		DMPermission:             c.DefaultPermmission,
+		DMPermission:             c.DMPermmission,
 		Options:                  options,
 	}
 }

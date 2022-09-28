@@ -11,15 +11,15 @@ type (
 )
 
 func (u *unban) bungieHandler(ctx *router.Context) {
-	ctx.Reply("Bungie")
+	ctx.Reply("Bungie", nil, nil)
 }
 
 func (u *unban) discordHandler(ctx *router.Context) {
-	ctx.Reply("Discord")
+	ctx.Reply("Discord", nil, nil)
 }
 
 func (u *unban) faceitHandler(ctx *router.Context) {
-	ctx.Reply("Faceit")
+	ctx.Reply("Faceit", nil, nil)
 }
 
 func (u *unban) Command() *router.Command {

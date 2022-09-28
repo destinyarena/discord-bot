@@ -11,15 +11,15 @@ type (
 )
 
 func (t *timeout) bungieHandler(ctx *router.Context) {
-	ctx.Reply("Bungie")
+	ctx.Reply("Bungie", nil, nil)
 }
 
 func (t *timeout) discordHandler(ctx *router.Context) {
-	ctx.Reply("Discord")
+	ctx.Reply("Discord", nil, nil)
 }
 
 func (t *timeout) faceitHandler(ctx *router.Context) {
-	ctx.Reply("Faceit")
+	ctx.Reply("Faceit", nil, nil)
 }
 
 func (t *timeout) Command() *router.Command {
