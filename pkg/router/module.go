@@ -4,7 +4,7 @@ type (
 	ModuleHandlerFunc func(ctx *ModuleContext)
 
 	ModuleInterface interface {
-		ModuleInit(ctx *ModuleContext) (*Module, error)
+		Register(ctx *ModuleContext) error
 		Commands() []*Command
 		Components() []*Component
 		Modals() []*Modal

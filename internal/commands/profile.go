@@ -32,6 +32,52 @@ const (
 	ProfileBanID     = "profile_bans"
 )
 
+func (p *profile) Components() []*router.Component {
+	return []*router.Component{
+		{
+			ID:      ProfileSummaryID,
+			Type:    discordgo.ButtonComponent,
+			Label:   "Summary",
+			Style:   discordgo.PrimaryButton,
+			Handler: p.summaryComponentHandler,
+			Args: []*router.ComponentArgument{
+				{
+					Name: "user",
+					Type: router.ComponentArgumentTypeUser,
+				},
+			},
+		},
+
+		{
+			ID:      ProfileTimeoutID,
+			Type:    discordgo.ButtonComponent,
+			Label:   "Timeouts",
+			Style:   discordgo.PrimaryButton,
+			Handler: p.timeoutComponentHandler,
+			Args: []*router.ComponentArgument{
+				{
+					Name: "user",
+					Type: router.ComponentArgumentTypeUser,
+				},
+			},
+		},
+
+		{
+			ID:      ProfileBanID,
+			Type:    discordgo.ButtonComponent,
+			Label:   "Bans",
+			Style:   discordgo.PrimaryButton,
+			Handler: p.banComponentHandler,
+			Args: []*router.ComponentArgument{
+				{
+					Name: "user",
+					Type: router.ComponentArgumentTypeUser,
+				},
+			},
+		},
+	}
+}
+
 func (p *profile) Command() *router.Command {
 	cmd := router.NewCommand(
 		"profile",
@@ -39,88 +85,56 @@ func (p *profile) Command() *router.Command {
 		nil,
 	)
 
-	cmd.AddComponent(&router.Component{
-		Name:    ProfileSummaryID,
-		Type:    discordgo.ButtonComponent,
-		Handler: p.summaryComponentHandler,
-		Args: []*router.ComponentArgument{
-			{
-				Name: "user",
-				Type: router.ComponentArgumentTypeUser,
-			},
-		},
-	})
+	cmd.AddComponents(p.Components()...)
 
-	cmd.AddComponent(&router.Component{
-		Name:    ProfileTimeoutID,
-		Type:    discordgo.ButtonComponent,
-		Handler: p.timeoutComponentHandler,
-		Args: []*router.ComponentArgument{
-			{
-				Name: "user",
-				Type: router.ComponentArgumentTypeUser,
+	subcommands := []router.SubCommandInterface{
+		&router.SubCommand{
+			Name:        "faceit",
+			Description: "Get a players profile with their faceit username",
+			Options: []*router.CommandOption{
+				{
+					Type:        discordgo.ApplicationCommandOptionString,
+					Name:        "username",
+					Description: "The faceit username",
+					Required:    true,
+				},
 			},
+			Handler: p.faceitHandler,
 		},
-	})
+		&router.SubCommand{
+			Name:        "discord",
+			Description: "Get a players profile with their discord username",
+			Options: []*router.CommandOption{
+				{
+					Type:        discordgo.ApplicationCommandOptionUser,
+					Name:        "user",
+					Description: "The discord user",
+					Required:    true,
+				},
+			},
+			Handler: p.discordHandler,
+		},
+		&router.SubCommand{
+			Name:        "bungie",
+			Description: "Get a players profile with their bungie id",
+			Options: []*router.CommandOption{
+				{
+					Type:        discordgo.ApplicationCommandOptionString,
+					Name:        "id",
+					Description: "The bungie id",
+					Required:    true,
+				},
+			},
+			Handler: p.bungieHandler,
+		},
+	}
 
-	cmd.AddComponent(&router.Component{
-		Name:    ProfileBanID,
-		Type:    discordgo.ButtonComponent,
-		Handler: p.banComponentHandler,
-		Args: []*router.ComponentArgument{
-			{
-				Name: "user",
-				Type: router.ComponentArgumentTypeUser,
-			},
-		},
-	})
-
-	cmd.AddSubCommand(
-		"faceit",
-		"Get a players profile with their faceit username",
-		[]*router.CommandOption{
-			{
-				Type:        discordgo.ApplicationCommandOptionString,
-				Name:        "username",
-				Description: "The faceit username",
-				Required:    true,
-			},
-		},
-		p.faceitHandler,
-	)
-
-	cmd.AddSubCommand(
-		"discord",
-		"Get a players profile with their discord tag",
-		[]*router.CommandOption{
-			{
-				Type:        discordgo.ApplicationCommandOptionUser,
-				Name:        "user",
-				Description: "The discord user",
-				Required:    true,
-			},
-		},
-		p.discordHandler,
-	)
-
-	cmd.AddSubCommand(
-		"bungie",
-		"Get a players profile with their bungie id",
-		[]*router.CommandOption{
-			{
-				Type:        discordgo.ApplicationCommandOptionString,
-				Name:        "id",
-				Description: "The bungie id",
-				Required:    true,
-			},
-		},
-		p.bungieHandler,
-	)
+	cmd.AddSubCommands(subcommands...)
 
 	return cmd
 }
 
-func (p *profile) buildSummary(u *userprofile) (*discordgo.MessageEmbed, []discordgo.MessageComponent) {
+func (p *profile) buildSummary(u *userprofile, ctx *router.Context) (*discordgo.MessageEmbed, []discordgo.MessageComponent) {
 	embed := &discordgo.MessageEmbed{
 		Title: "Profile Summary",
 		Color: SuccessEmbedColor,
@@ -172,20 +186,15 @@ func (p *profile) buildSummary(u *userprofile) (*discordgo.MessageEmbed, []disco
 			Value: "Yes",
 		})
 	}
+	user, _ := ctx.Session.User("411323761116184578")
+	timeoutButton, _ := ctx.Router.GetComponent(ProfileTimeoutID).Build(user)
+	banButton, _ := ctx.Router.GetComponent(ProfileBanID).Build(user)
 
 	profileButtons := []discordgo.MessageComponent{
 		discordgo.ActionsRow{
 			Components: []discordgo.MessageComponent{
-				discordgo.Button{
-					Label:    "Timeouts",
-					CustomID: router.ComponentID(ProfileTimeoutID, u.DiscordID),
-					Style:    discordgo.PrimaryButton,
-				},
-				discordgo.Button{
-					Label:    "Bans",
-					CustomID: router.ComponentID(ProfileBanID, u.DiscordID),
-					Style:    discordgo.PrimaryButton,
-				},
+				timeoutButton,
+				banButton,
 			},
 		},
 	}
@@ -196,19 +205,23 @@ func (p *profile) buildSummary(u *userprofile) (*discordgo.MessageEmbed, []disco
 func (p *profile) timeoutComponentHandler(ctx *router.ComponentContext) {
 	fmt.Println("Timeouts")
 	user := ctx.Args["user"].Value.(*discordgo.User)
+	summaryButton, err := ctx.Router.GetComponent(ProfileSummaryID).Build(user)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	banButton, err := ctx.Router.GetComponent(ProfileBanID).Build(user)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
 	profileButtons := []discordgo.MessageComponent{
 		discordgo.ActionsRow{
 			Components: []discordgo.MessageComponent{
-				discordgo.Button{
-					Label:    "Summary",
-					CustomID: router.ComponentID(ProfileSummaryID, user.ID),
-					Style:    discordgo.PrimaryButton,
-				},
-				discordgo.Button{
-					Label:    "Bans",
-					CustomID: router.ComponentID(ProfileBanID, user.ID),
-					Style:    discordgo.PrimaryButton,
-				},
+				summaryButton,
+				banButton,
 			},
 		},
 	}
@@ -236,7 +249,7 @@ func (p *profile) timeoutComponentHandler(ctx *router.ComponentContext) {
 		},
 	}
 
-	err := ctx.Reply("", []*discordgo.MessageEmbed{embed}, profileButtons)
+	err = ctx.Reply("", []*discordgo.MessageEmbed{embed}, profileButtons)
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -244,20 +257,16 @@ func (p *profile) timeoutComponentHandler(ctx *router.ComponentContext) {
 
 func (p *profile) banComponentHandler(ctx *router.ComponentContext) {
 	fmt.Println("Bans")
+
 	user := ctx.Args["user"].Value.(*discordgo.User)
+	summaryButton, _ := ctx.Router.GetComponent(ProfileSummaryID).Build(user)
+	timeoutButtom, _ := ctx.Router.GetComponent(ProfileTimeoutID).Build(user)
+
 	profileButtons := []discordgo.MessageComponent{
 		discordgo.ActionsRow{
 			Components: []discordgo.MessageComponent{
-				discordgo.Button{
-					Label:    "Summary",
-					CustomID: router.ComponentID(ProfileSummaryID, user.ID),
-					Style:    discordgo.PrimaryButton,
-				},
-				discordgo.Button{
-					Label:    "Timeouts",
-					CustomID: router.ComponentID(ProfileTimeoutID, user.ID),
-					Style:    discordgo.PrimaryButton,
-				},
+				summaryButton,
+				timeoutButtom,
 			},
 		},
 	}
@@ -303,12 +312,12 @@ func (p *profile) summaryComponentHandler(ctx *router.ComponentContext) {
 		Banned:               false,
 	}
 
-	embed, profileButtons := p.buildSummary(u)
+	embed, profileButtons := p.buildSummary(u, &ctx.Context)
 	ctx.Reply("", []*discordgo.MessageEmbed{embed}, profileButtons)
 
 }
 
-func (p *profile) bungieHandler(ctx *router.Context) {
+func (p *profile) bungieHandler(ctx *router.CommandContext) {
 	bungieid := ctx.Options["id"].StringValue()
 
 	u := &userprofile{
@@ -323,11 +332,12 @@ func (p *profile) bungieHandler(ctx *router.Context) {
 		Banned:               false,
 	}
 
-	embed, profileButtons := p.buildSummary(u)
+	embed, profileButtons := p.buildSummary(u, ctx.Context)
+
 	ctx.Reply("", []*discordgo.MessageEmbed{embed}, profileButtons)
 }
 
-func (p *profile) discordHandler(ctx *router.Context) {
+func (p *profile) discordHandler(ctx *router.CommandContext) {
 	user, _ := ctx.Session.User(ctx.Options["user"].UserValue(nil).ID)
 
 	u := &userprofile{
@@ -343,11 +353,11 @@ func (p *profile) discordHandler(ctx *router.Context) {
 		Banned:               false,
 	}
 
-	embed, profileButtons := p.buildSummary(u)
+	embed, profileButtons := p.buildSummary(u, ctx.Context)
 	ctx.Reply("", []*discordgo.MessageEmbed{embed}, profileButtons)
 }
 
-func (p *profile) faceitHandler(ctx *router.Context) {
+func (p *profile) faceitHandler(ctx *router.CommandContext) {
 	faceituser := ctx.Options["username"].StringValue()
 
 	u := &userprofile{
@@ -362,6 +372,6 @@ func (p *profile) faceitHandler(ctx *router.Context) {
 		Banned:               false,
 	}
 
-	embed, profileButtons := p.buildSummary(u)
+	embed, profileButtons := p.buildSummary(u, ctx.Context)
 	ctx.Reply("", []*discordgo.MessageEmbed{embed}, profileButtons)
 }

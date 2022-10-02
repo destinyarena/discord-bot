@@ -6,4 +6,9 @@ type (
 	PreRouteContext struct{}
 
 	PreRouteInterface interface{}
+
+	PreRoute struct {
+		Handler   PrerouteHandlerFunc
+		NextRoute *PreRoute
+	}
 )

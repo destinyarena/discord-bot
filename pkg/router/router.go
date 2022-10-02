@@ -8,46 +8,20 @@ import (
 )
 
 type (
-	RouterInterface interface {
-		// Discordgo interaction handler
-		Handler(s *discordgo.Session, i *discordgo.InteractionCreate)
-
-		// PreRoute Handlers
-		AddPreRoute(h ...PreRouteInterface) (*PreRouteContext, error)
-
-		// Syncs slash commands with discord
-		Sync(s *discordgo.Session, guildid string) error
-
-		// Registers Global Commands
-		AddCommands(commands ...*Command) error
-
-		// Updates registered commands
-		UpdateCommands(commands ...*Command) error
-
-		// Adds Guild Commands
-		AddGuildCommands(guildid string, commands ...*Command) error
-		UpdateGuildCommands(guildid string, commands ...*Command) error
-
-		// Registers Button
-		AddComponents(components ...*Component) error
-
-		// Register Modal
-		AddModals(modals ...*Modal) error
-
-		// Registers Modules
-		RegisterModules(m ...Module) error
-	}
 	Router struct {
-		commands   map[string]*Command
+		commands   map[string]CommandInterface
+		guilds     map[string]map[string]CommandInterface
 		components map[string]*Component
-		guilds     map[string]map[string]*Command
+		modals     map[string]*Modal
 	}
 )
 
-func NewRouter() (Router, error) {
+func NewRouter() (*Router, error) {
 	r := &Router{
-		commands:   make(map[string]*Command),
+		commands:   make(map[string]CommandInterface),
+		guilds:     make(map[string]map[string]CommandInterface),
 		components: make(map[string]*Component),
+		modals:     make(map[string]*Modal),
 	}
 
 	return r, nil
@@ -65,8 +39,7 @@ func (r *Router) Handler(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	case discordgo.InteractionApplicationCommandAutocomplete:
 		r.handleCommandAutocomplete(s, i)
 	case discordgo.InteractionModalSubmit:
-		//r.handleModalSubmit(s, i)
-		fmt.Println("TODO")
+		r.handleModalSubmit(s, i)
 	}
 }
 
@@ -101,6 +74,99 @@ func (r *Router) Sync(s *discordgo.Session, guildid string) error {
 
 }
 
+func (r *Router) AddCommands(commands ...CommandInterface) error {
+	for _, c := range commands {
+		if _, ok := r.commands[c.GetName()]; ok {
+			return &CommandExistsError{c.GetName()}
+		}
+		r.commands[c.GetName()] = c
+		fmt.Printf("Adding command %s\n", c.GetName())
+		r.AddComponents(c.GetComponents()...)
+		r.AddModals(c.GetModals()...)
+	}
+	return nil
+}
+
+func (r *Router) UpdateCommands(commands ...CommandInterface) error {
+	for _, c := range commands {
+		if _, ok := r.commands[c.GetName()]; !ok {
+			return &CommandNotFoundError{c.GetName()}
+		}
+		r.commands[c.GetName()] = c
+	}
+	return nil
+}
+
+func (r *Router) AddGuildCommands(guildid string, commands ...CommandInterface) error {
+	if _, ok := r.guilds[guildid]; !ok {
+		r.guilds[guildid] = make(map[string]CommandInterface)
+	}
+
+	for _, c := range commands {
+		if _, ok := r.guilds[guildid][c.GetName()]; ok {
+			return &CommandExistsError{c.GetName()}
+		}
+		r.guilds[guildid][c.GetName()] = c
+		fmt.Printf("Adding command %s to guild %s\n", c.GetName(), guildid)
+	}
+
+	return nil
+}
+
+func (r *Router) UpdateGuildCommands(guildid string, commands ...CommandInterface) error {
+	if _, ok := r.guilds[guildid]; !ok {
+		return fmt.Errorf("no commands registered for guild: %s", guildid)
+	}
+
+	for _, c := range commands {
+		if _, ok := r.guilds[guildid][c.GetName()]; !ok {
+			return &CommandNotFoundError{c.GetName()}
+		}
+
+		r.guilds[guildid][c.GetName()] = c
+	}
+
+	return nil
+}
+
+func (r *Router) AddComponents(components ...*Component) error {
+	for _, c := range components {
+		if _, ok := r.components[c.ID]; ok {
+			return &ComponentExistsError{c.ID}
+		}
+		r.components[c.ID] = c
+		fmt.Printf("Adding component %s\n", c.ID)
+	}
+	return nil
+}
+
+func (r *Router) GetComponent(id string) *Component {
+	return r.components[id]
+}
+
+func (r *Router) BuildComponent(id string, args ...interface{}) (discordgo.MessageComponent, error) {
+	c, ok := r.components[id]
+	if !ok {
+		return nil, &ComponentNotFoundError{id}
+	}
+
+	return c.Build(args...)
+}
+
+func (r *Router) AddModals(modals ...*Modal) error {
+	for _, m := range modals {
+		if _, ok := r.modals[m.ID]; ok {
+			return &ModalExistsError{m.ID}
+		}
+		r.modals[m.ID] = m
+	}
+	return nil
+}
+
+func (r *Router) GetModal(id string) *Modal {
+	return r.modals[id]
+}
+
 func (r *Router) handlePing(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponsePong,
@@ -111,29 +177,33 @@ func (r *Router) handleApplicationCommand(s *discordgo.Session, i *discordgo.Int
 	data := i.ApplicationCommandData()
 	c, ok := r.commands[data.Name]
 	if !ok {
-		fmt.Printf("Command not found: %s\n", data.Name)
+		err := &CommandNotFoundError{data.Name}
+		fmt.Println(err)
 		return
 	}
 
-	ctx := &Context{
-		Session:     s,
-		Interaction: i.Interaction,
-		Options:     make(map[string]*discordgo.ApplicationCommandInteractionDataOption),
+	ctx := &CommandContext{
+		Context: &Context{
+			Session:     s,
+			Router:      r,
+			Interaction: i.Interaction,
+		},
+		Options: make(map[string]*discordgo.ApplicationCommandInteractionDataOption),
 	}
 
-	var handler HandlerFunc
+	var handler CommandHandlerFunc
 
 	if len(data.Options) > 0 {
 		switch data.Options[0].Type {
 		case discordgo.ApplicationCommandOptionSubCommand:
 			if sub := c.GetSubCommand(data.Options[0].Name); sub != nil {
-				handler = sub.Handler
+				handler = sub.GetHandler()
 				ctx.Options = convertOptionsToMap(data.Options[0].Options)
 			}
 		case discordgo.ApplicationCommandOptionSubCommandGroup:
 			if g := c.GetSubCommandGroup(data.Options[0].Name); g != nil {
 				if sub := g.GetSubCommand(data.Options[0].Options[0].Name); sub != nil {
-					handler = sub.Handler
+					handler = sub.GetHandler()
 					ctx.Options = convertOptionsToMap(data.Options[0].Options[0].Options)
 				}
 			}
@@ -150,7 +220,7 @@ func (r *Router) handleMessageComponent(s *discordgo.Session, i *discordgo.Inter
 	fmt.Printf("Received component: %s\n", data.CustomID)
 
 	slice := strings.Split(data.CustomID, "-")
-	if component, ok := r.components[slice[0]]; ok && (len(component.Args) == (len(slice) - 1)) {
+	if component, ok := r.components[slice[0]]; ok && (len(component.Args) == (len(slice) - 1)) && component.Type == data.ComponentType {
 		fmt.Printf("Found component: %s\n", slice[0])
 
 		args := make(map[string]*ComponentArgument, 0)
@@ -158,7 +228,7 @@ func (r *Router) handleMessageComponent(s *discordgo.Session, i *discordgo.Inter
 		for idx, arg := range component.Args {
 			var value interface{}
 
-			fmt.Println("Args for component:", component.Name, slice[1:])
+			fmt.Println("Args for component:", component.ID, slice[1:])
 
 			switch arg.Type {
 			case ComponentArgumentTypeString:
@@ -180,6 +250,7 @@ func (r *Router) handleMessageComponent(s *discordgo.Session, i *discordgo.Inter
 
 		ctx := &ComponentContext{
 			Context: Context{
+				Router:      r,
 				Session:     s,
 				Interaction: i.Interaction,
 				Message:     i.Message,
@@ -204,4 +275,8 @@ func (r *Router) handleMessageComponent(s *discordgo.Session, i *discordgo.Inter
 
 func (r *Router) handleCommandAutocomplete(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	// todo
+}
+
+func (r *Router) handleModalSubmit(s *discordgo.Session, i *discordgo.InteractionCreate) {
+
 }

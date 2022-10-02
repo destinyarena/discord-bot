@@ -16,10 +16,14 @@ func main() {
 		panic(err)
 	}
 
+	fmt.Println("Starting router")
+
 	router, err := router.NewRouter()
 	if err != nil {
 		panic(err)
 	}
+
+	fmt.Println("Adding commands")
 
 	if _, err = commands.New(router); err != nil {
 		panic(err)
