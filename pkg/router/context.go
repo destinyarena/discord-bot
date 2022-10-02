@@ -3,16 +3,6 @@ package router
 import "github.com/bwmarrin/discordgo"
 
 type (
-	ContextInterface interface {
-		Reply(content string, embeds []*discordgo.MessageEmbed, components []discordgo.MessageComponent) error
-		UpdateReply(content string, embeds []*discordgo.MessageEmbed, components []discordgo.MessageComponent) error
-		EphemeralReply(content string, embeds []*discordgo.MessageEmbed, components []discordgo.MessageComponent) error
-		GetSession() *discordgo.Session
-		GetInteraction() *discordgo.Interaction
-		GetMessage() *discordgo.Message
-		GetOptions() map[string]*discordgo.ApplicationCommandInteractionDataOption
-	}
-
 	Context struct {
 		Router      *Router
 		Session     *discordgo.Session
