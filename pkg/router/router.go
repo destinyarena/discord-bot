@@ -9,19 +9,19 @@ import (
 
 type (
 	Router struct {
-		commands   map[string]CommandInterface
-		guilds     map[string]map[string]CommandInterface
-		components map[string]*Component
-		modals     map[string]*Modal
+		commands      map[string]CommandInterface
+		guildCommands map[string]map[string]CommandInterface
+		components    map[string]*Component
+		modals        map[string]*Modal
 	}
 )
 
 func NewRouter() (*Router, error) {
 	r := &Router{
-		commands:   make(map[string]CommandInterface),
-		guilds:     make(map[string]map[string]CommandInterface),
-		components: make(map[string]*Component),
-		modals:     make(map[string]*Modal),
+		commands:      make(map[string]CommandInterface),
+		guildCommands: make(map[string]map[string]CommandInterface),
+		components:    make(map[string]*Component),
+		modals:        make(map[string]*Modal),
 	}
 
 	return r, nil
@@ -48,7 +48,7 @@ func (r *Router) Sync(s *discordgo.Session, guildid string) error {
 	var appcmds []*discordgo.ApplicationCommand
 
 	if guildid != "" {
-		cmds, ok := r.guilds[guildid]
+		cmds, ok := r.guildCommands[guildid]
 		if !ok {
 			return fmt.Errorf("no commands registered for guild: %s", guildid)
 		}
@@ -98,15 +98,15 @@ func (r *Router) UpdateCommands(commands ...CommandInterface) error {
 }
 
 func (r *Router) AddGuildCommands(guildid string, commands ...CommandInterface) error {
-	if _, ok := r.guilds[guildid]; !ok {
-		r.guilds[guildid] = make(map[string]CommandInterface)
+	if _, ok := r.guildCommands[guildid]; !ok {
+		r.guildCommands[guildid] = make(map[string]CommandInterface)
 	}
 
 	for _, c := range commands {
-		if _, ok := r.guilds[guildid][c.GetName()]; ok {
+		if _, ok := r.guildCommands[guildid][c.GetName()]; ok {
 			return &CommandExistsError{c.GetName()}
 		}
-		r.guilds[guildid][c.GetName()] = c
+		r.guildCommands[guildid][c.GetName()] = c
 		fmt.Printf("Adding command %s to guild %s\n", c.GetName(), guildid)
 	}
 
@@ -114,16 +114,16 @@ func (r *Router) AddGuildCommands(guildid string, commands ...CommandInterface) 
 }
 
 func (r *Router) UpdateGuildCommands(guildid string, commands ...CommandInterface) error {
-	if _, ok := r.guilds[guildid]; !ok {
+	if _, ok := r.guildCommands[guildid]; !ok {
 		return fmt.Errorf("no commands registered for guild: %s", guildid)
 	}
 
 	for _, c := range commands {
-		if _, ok := r.guilds[guildid][c.GetName()]; !ok {
+		if _, ok := r.guildCommands[guildid][c.GetName()]; !ok {
 			return &CommandNotFoundError{c.GetName()}
 		}
 
-		r.guilds[guildid][c.GetName()] = c
+		r.guildCommands[guildid][c.GetName()] = c
 	}
 
 	return nil

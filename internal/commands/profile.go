@@ -30,13 +30,26 @@ const (
 	ProfileSummaryID = "profile_summary"
 	ProfileTimeoutID = "profile_timeouts"
 	ProfileBanID     = "profile_bans"
+	TestID           = "test"
 )
 
-func (p *profile) Components() []*router.Component {
-	return []*router.Component{
-		{
+func (p *profile) Components() []router.Component {
+	return []router.Component{
+		&router.SelectMenuComponent{
+			ID:          TestID,
+			Placeholder: "Select an option",
+			MaxValues:   2,
+			Options: []discordgo.SelectMenuOption{
+				{
+					Label:       "Test 1",
+					Value:       "test",
+					Default:     true,
+					Description: "Testing",
+				},
+			},
+		},
+		&router.ButtonComponent{
 			ID:      ProfileSummaryID,
-			Type:    discordgo.ButtonComponent,
 			Label:   "Summary",
 			Style:   discordgo.PrimaryButton,
 			Handler: p.summaryComponentHandler,
@@ -48,9 +61,8 @@ func (p *profile) Components() []*router.Component {
 			},
 		},
 
-		{
+		&router.ButtonComponent{
 			ID:      ProfileTimeoutID,
-			Type:    discordgo.ButtonComponent,
 			Label:   "Timeouts",
 			Style:   discordgo.PrimaryButton,
 			Handler: p.timeoutComponentHandler,
@@ -62,9 +74,8 @@ func (p *profile) Components() []*router.Component {
 			},
 		},
 
-		{
+		&router.ButtonComponent{
 			ID:      ProfileBanID,
-			Type:    discordgo.ButtonComponent,
 			Label:   "Bans",
 			Style:   discordgo.PrimaryButton,
 			Handler: p.banComponentHandler,
@@ -189,12 +200,14 @@ func (p *profile) buildSummary(u *userprofile, ctx *router.Context) (*discordgo.
 	user, _ := ctx.Session.User("411323761116184578")
 	timeoutButton, _ := ctx.Router.GetComponent(ProfileTimeoutID).Build(user)
 	banButton, _ := ctx.Router.GetComponent(ProfileBanID).Build(user)
+	testmenu, _ := ctx.Router.GetComponent(TestID).Build(user)
 
 	profileButtons := []discordgo.MessageComponent{
 		discordgo.ActionsRow{
 			Components: []discordgo.MessageComponent{
 				timeoutButton,
 				banButton,
+				testmenu,
 			},
 		},
 	}

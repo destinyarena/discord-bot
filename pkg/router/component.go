@@ -1,6 +1,7 @@
 package router
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/bwmarrin/discordgo"
@@ -21,21 +22,32 @@ type (
 		Type  ComponentArgumentType
 	}
 
-	Component struct {
+	Component interface {
+		GetType() discordgo.ComponentType
+		Build(args ...interface{}) (discordgo.MessageComponent, error)
+	}
+
+	ButtonComponent struct {
+		Component
 		ID       string
-		Type     discordgo.ComponentType
-		Args     []*ComponentArgument
+		Label    string
+		Style    discordgo.ButtonStyle
+		Emoji    discordgo.ComponentEmoji
 		Disabled bool
+		Args     []*ComponentArgument
 		Handler  ComponentHandlerFunc
+	}
 
-		Label string
-		Style discordgo.ButtonStyle
-		Emoji discordgo.ComponentEmoji
-
+	SelectMenuComponent struct {
+		Component
+		ID          string
 		Placeholder string
 		MinValues   *int
 		MaxValues   int
+		Disabled    bool
 		Options     []discordgo.SelectMenuOption
+		Args        []*ComponentArgument
+		Handler     ComponentHandlerFunc
 	}
 )
 
@@ -46,61 +58,73 @@ const (
 	ComponentArgumentTypeRole
 )
 
-func (c *Component) Build(args ...interface{}) (discordgo.MessageComponent, error) {
-	if len(args) != len(c.Args) {
-		return nil, fmt.Errorf("invalid number of arguments for component %s", c.ID)
+func getIDFromArgs(baseID string, cargs []*ComponentArgument, args []interface{}) (string, error) {
+	if len(args) != len(cargs) {
+		return baseID, errors.New("Invalid number of component arguments")
 	}
 
-	customID := c.ID
+	customID := baseID
 
-	for idx, arg := range c.Args {
+	for idx, arg := range cargs {
 		switch arg.Type {
 		case ComponentArgumentTypeString:
 			value, ok := args[idx].(string)
 			if !ok {
-				return nil, fmt.Errorf("invalid argument type for component %s", c.ID)
+				return "", fmt.Errorf("invalid argument type for component %s", baseID)
 			}
 			customID += "-" + value
 		case ComponentArgumentTypeUser:
 			value, ok := args[idx].(*discordgo.User)
 			if !ok {
-				return nil, fmt.Errorf("invalid argument type for component %s", c.ID)
+				return "", fmt.Errorf("invalid argument type for component %s", baseID)
 			}
 			customID += "-" + value.ID
 		case ComponentArgumentTypeChannel:
 			value, ok := args[idx].(*discordgo.Channel)
 			if !ok {
-				return nil, fmt.Errorf("invalid argument type for component %s", c.ID)
+				return "", fmt.Errorf("invalid argument type for component %s", baseID)
 			}
 			customID += "-" + value.ID
 		case ComponentArgumentTypeRole:
 			value, ok := args[idx].(*discordgo.Role)
 			if !ok {
-				return nil, fmt.Errorf("invalid argument type for component %s", c.ID)
+				return "", fmt.Errorf("invalid argument type for component %s", baseID)
 			}
 			customID += "-" + value.ID
 		}
 	}
 
-	switch c.Type {
-	case discordgo.ButtonComponent:
-		return &discordgo.Button{
-			Label:    c.Label,
-			Style:    c.Style,
-			Emoji:    c.Emoji,
-			CustomID: customID,
-			Disabled: c.Disabled,
-		}, nil
-	case discordgo.SelectMenuComponent:
-		return &discordgo.SelectMenu{
-			CustomID:    customID,
-			Placeholder: c.Placeholder,
-			MinValues:   c.MinValues,
-			MaxValues:   c.MaxValues,
-			Options:     c.Options,
-			Disabled:    c.Disabled,
-		}, nil
+	return customID, nil
+}
+
+func (c *ButtonComponent) Build(args ...interface{}) (discordgo.MessageComponent, error) {
+	id, err := getIDFromArgs(c.ID, c.Args, args)
+	if err != nil {
+		return nil, err
 	}
 
-	return nil, fmt.Errorf("invalid component type for component %s", c.ID)
+	return &discordgo.Button{
+		Label:    c.Label,
+		Style:    c.Style,
+		Disabled: c.Disabled,
+		Emoji:    c.Emoji,
+		CustomID: id,
+	}, nil
+
+}
+
+func (c *SelectMenuComponent) Build(args ...interface{}) (discordgo.MessageComponent, error) {
+	id, err := getIDFromArgs(c.ID, c.Args, args)
+	if err != nil {
+		return nil, err
+	}
+
+	return &discordgo.SelectMenu{
+		CustomID:    id,
+		Placeholder: c.Placeholder,
+		MinValues:   c.MinValues,
+		MaxValues:   c.MaxValues,
+		Options:     c.Options,
+		Disabled:    c.Disabled,
+	}, nil
 }
