@@ -9,7 +9,7 @@ clean:
 	rm -rf bin
 
 build: clean
-	$(GOBUILD) -o bin/bot cmd/bot/main.go
+	$(GOBUILD) -o bin/bot cmd/main.go
 
 
 

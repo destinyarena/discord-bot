@@ -29,7 +29,7 @@ type (
 		ComponentName string
 	}
 
-	CommandExistsError struct {
+	CommandAlreadyRegisteredError struct {
 		CommandName string
 	}
 
@@ -41,7 +41,15 @@ type (
 		CommandName string
 		Err         error
 	}
+
+	ErrSubCommandGroupAlreadyExists struct {
+		GroupName string
+	}
 )
+
+func (e *ErrSubCommandGroupAlreadyExists) Error() string {
+	return fmt.Sprintf("subcommand group %s already exists", e.GroupName)
+}
 
 func (e *ModalExistsError) Error() string {
 	return fmt.Sprintf("Modal already exists: %s\n", e.ModalName)
@@ -67,7 +75,7 @@ func (e *ComponentNotFoundError) Error() string {
 	return fmt.Sprintf("Component not found: %s\n", e.ComponentName)
 }
 
-func (e *CommandExistsError) Error() string {
+func (e *CommandAlreadyRegisteredError) Error() string {
 	return fmt.Sprintf("Command already exists: %s\n", e.CommandName)
 }
 

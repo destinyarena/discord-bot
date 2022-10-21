@@ -12,13 +12,3 @@ func convertOptionsToMap(options []*discordgo.ApplicationCommandInteractionDataO
 
 	return m
 }
-
-func convertOptions(options []*CommandOption) []*discordgo.ApplicationCommandOption {
-	converted := make([]*discordgo.ApplicationCommandOption, len(options))
-
-	for i, o := range options {
-		converted[i] = (*discordgo.ApplicationCommandOption)(o)
-	}
-
-	return converted
-}

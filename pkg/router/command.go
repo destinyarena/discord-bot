@@ -1,8 +1,6 @@
 package router
 
 import (
-	"fmt"
-
 	"github.com/bwmarrin/discordgo"
 )
 
@@ -15,273 +13,148 @@ type (
 		Options map[string]*discordgo.ApplicationCommandInteractionDataOption
 	}
 
-	CommandInterface interface {
-		GetName() string
-		GetDescription() string
-		GetHandler() CommandHandlerFunc
-		AddSubCommands(subcommands ...SubCommandInterface) error
-		GetSubCommand(name string) SubCommandInterface
-		GetSubCommands() []SubCommandInterface
-		AddSubCommandGroups(subcommandgroups ...SubCommandGroupInterface) error
-		GetSubCommandGroup(name string) SubCommandGroupInterface
-		GetSubCommandGroups() []SubCommandGroupInterface
-		AddComponents(components ...*Component) error
-		GetComponents() []*Component
-		AddModals(modals ...*Modal) error
-		GetModals() []*Modal
-		GetOptions() []*CommandOption
-		GetDMPermission() bool
-		GetDefaultPermmissions() int64
-		ToApplicationCommand() *discordgo.ApplicationCommand
-	}
-
-	SubCommandGroupInterface interface {
-		GetName() string
-		GetDescription() string
-		AddSubCommands(subcommands ...SubCommandInterface) error
-		GetSubCommand(name string) SubCommandInterface
-		GetSubCommands() []SubCommandInterface
-	}
-
-	SubCommandInterface interface {
-		GetName() string
-		GetDescription() string
-		GetHandler() CommandHandlerFunc
-		GetOptions() []*CommandOption
+	CommandRouter struct {
+		commands map[string]*Command
 	}
 
 	Command struct {
 		Name                string
 		Description         string
-		SubCommandGroups    map[string]SubCommandGroupInterface
-		SubCommands         map[string]SubCommandInterface
-		Modals              []*Modal
-		Components          []*Component
+		Commands            *CommandRouter
 		Options             []*CommandOption
 		Handler             CommandHandlerFunc
 		DefaultPermmissions *int64
 		DMPermmission       *bool
 	}
-
-	SubCommandGroup struct {
-		Name        string
-		Description string
-		SubCommands map[string]SubCommandInterface
-	}
-
-	SubCommand struct {
-		Name        string
-		Description string
-		Options     []*CommandOption
-		Handler     CommandHandlerFunc
-	}
 )
 
-func NewCommand(name string, description string, handler CommandHandlerFunc) *Command {
-	return &Command{
-		Name:             name,
-		Description:      description,
-		Handler:          handler,
-		SubCommands:      make(map[string]SubCommandInterface),
-		SubCommandGroups: make(map[string]SubCommandGroupInterface),
-		Components:       make([]*Component, 0),
-		Modals:           make([]*Modal, 0),
-		Options:          make([]*CommandOption, 0),
-	}
-}
-
-func (c *Command) GetName() string {
-	return c.Name
-}
-
-func (c *Command) GetDescription() string {
-	return c.Description
-}
-
-func (c *Command) GetHandler() CommandHandlerFunc {
-	return c.Handler
-}
-
-func (c *Command) AddSubCommands(subcommands ...SubCommandInterface) error {
-	if c.SubCommands == nil {
-		c.SubCommands = make(map[string]SubCommandInterface)
+func NewCommandRouter(commands []*Command) *CommandRouter {
+	router := &CommandRouter{
+		commands: make(map[string]*Command),
 	}
 
-	for _, s := range subcommands {
-		if _, ok := c.SubCommands[s.GetName()]; ok {
-			return fmt.Errorf("subcommand already exists: %s", s.GetName())
+	for _, command := range commands {
+		router.Register(command)
+	}
+
+	return router
+}
+
+func (r *CommandRouter) Register(commands ...*Command) error {
+	for _, command := range commands {
+		if _, ok := r.commands[command.Name]; ok {
+			return &CommandAlreadyRegisteredError{command.Name}
 		}
-		c.SubCommands[s.GetName()] = s
+
+		r.commands[command.Name] = command
 	}
+
 	return nil
 }
 
-func (c *Command) GetSubCommand(name string) SubCommandInterface {
-	return c.SubCommands[name]
+func (r *CommandRouter) Get(name string) *Command {
+	return r.commands[name]
 }
 
-func (c *Command) GetSubCommands() []SubCommandInterface {
-	var subCommands []SubCommandInterface
-	for _, subCommand := range c.SubCommands {
-		subCommands = append(subCommands, subCommand)
-	}
-	return subCommands
-}
-
-func (c *Command) AddSubCommandGroups(subcommandgroups ...SubCommandGroupInterface) error {
-	if c.SubCommandGroups == nil {
-		c.SubCommandGroups = make(map[string]SubCommandGroupInterface)
+func (r *CommandRouter) Unregister(commands ...*Command) error {
+	for _, command := range commands {
+		delete(r.commands, command.Name)
 	}
 
-	for _, s := range subcommandgroups {
-		if _, ok := c.SubCommandGroups[s.GetName()]; ok {
-			return fmt.Errorf("subcommandgroup already exists: %s", s.GetName())
-		}
-		c.SubCommandGroups[s.GetName()] = s
-	}
 	return nil
 }
 
-func (c *Command) GetSubCommandGroup(name string) SubCommandGroupInterface {
-	return c.SubCommandGroups[name]
-}
+func (r *CommandRouter) List() []*Command {
+	commands := make([]*Command, len(r.commands))
 
-func (c *Command) GetSubCommandGroups() []SubCommandGroupInterface {
-	var subCommandGroups []SubCommandGroupInterface
-	for _, subCommandGroup := range c.SubCommandGroups {
-		subCommandGroups = append(subCommandGroups, subCommandGroup)
+	i := 0
+	for _, command := range r.commands {
+		commands[i] = command
+		i++
 	}
-	return subCommandGroups
+
+	return commands
 }
 
-func (c *Command) AddComponents(components ...*Component) error {
-	c.Components = append(c.Components, components...)
-	return nil
-}
-
-func (c *Command) GetComponents() []*Component {
-	return c.Components
-}
-
-func (c *Command) AddModals(modals ...*Modal) error {
-	c.Modals = append(c.Modals, modals...)
-	return nil
-}
-
-func (c *Command) GetModals() []*Modal {
-	return c.Modals
-}
-
-func (c *Command) GetOptions() []*CommandOption {
-	return c.Options
-}
-
-func (c *Command) GetDMPermission() bool {
-	if c.DMPermmission != nil {
-		return *c.DMPermmission
-	}
-	return false
-}
-
-func (c *Command) GetDefaultPermmissions() int64 {
-	if c.DefaultPermmissions != nil {
-		return int64(*c.DefaultPermmissions)
-	}
-	return 0
-}
-
-func (c *Command) ToApplicationCommand() *discordgo.ApplicationCommand {
-	options := make([]*discordgo.ApplicationCommandOption, 0)
-
-	if len(c.SubCommands) > 0 || len(c.SubCommandGroups) > 0 {
-		for _, g := range c.SubCommandGroups {
-			goptions := make([]*discordgo.ApplicationCommandOption, 0)
-
-			for _, sc := range g.GetSubCommands() {
-				goptions = append(goptions, &discordgo.ApplicationCommandOption{
-					Type:        discordgo.ApplicationCommandOptionSubCommand,
-					Name:        sc.GetName(),
-					Description: sc.GetDescription(),
-					Options:     convertOptions(sc.GetOptions()),
-				})
-			}
-
-			options = append(options, &discordgo.ApplicationCommandOption{
-				Type:        discordgo.ApplicationCommandOptionSubCommandGroup,
-				Name:        g.GetName(),
-				Description: g.GetDescription(),
-				Options:     goptions,
-			})
+func (c *Command) applicationCommandOptions() []*discordgo.ApplicationCommandOption {
+	if c.Commands == nil {
+		options := make([]*discordgo.ApplicationCommandOption, len(c.Options))
+		for i, option := range c.Options {
+			options[i] = (*discordgo.ApplicationCommandOption)(option)
 		}
 
-		for _, sc := range c.SubCommands {
-			options = append(options, &discordgo.ApplicationCommandOption{
-				Type:        discordgo.ApplicationCommandOptionSubCommand,
-				Name:        sc.GetName(),
-				Description: sc.GetDescription(),
-				Options:     convertOptions(sc.GetOptions()),
-			})
-		}
-
-	} else {
-		options = append(options, convertOptions(c.Options)...)
+		return options
 	}
 
-	return &discordgo.ApplicationCommand{
+	options := make([]*discordgo.ApplicationCommandOption, len(c.Commands.List()))
+
+	for i, command := range c.Commands.List() {
+		oType := discordgo.ApplicationCommandOptionSubCommand
+		if command.Commands != nil {
+			oType = discordgo.ApplicationCommandOptionSubCommandGroup
+		}
+
+		options[i] = &discordgo.ApplicationCommandOption{
+			Type:        oType,
+			Name:        command.Name,
+			Description: command.Description,
+			Options:     command.applicationCommandOptions(),
+		}
+	}
+
+	return options
+}
+
+func (c *Command) ApplicationCommand() *discordgo.ApplicationCommand {
+	ac := &discordgo.ApplicationCommand{
 		Name:                     c.Name,
+		Type:                     discordgo.ChatApplicationCommand,
 		Description:              c.Description,
-		DefaultMemberPermissions: c.DefaultPermmissions,
 		DMPermission:             c.DMPermmission,
-		Options:                  options,
+		DefaultMemberPermissions: c.DefaultPermmissions,
+	}
+
+	ac.Options = c.applicationCommandOptions()
+
+	return ac
+}
+
+// Command Builder
+
+func NewCommand(name, description string) *Command {
+	return &Command{
+		Name:        name,
+		Description: description,
+		Commands:    NewCommandRouter(nil),
 	}
 }
 
-func (scg *SubCommandGroup) GetName() string {
-	return scg.Name
+func (c *Command) WithOptions(options ...*CommandOption) *Command {
+	c.Options = options
+
+	return c
 }
 
-func (scg *SubCommandGroup) GetDescription() string {
-	return scg.Description
+func (c *Command) WithHandler(handler CommandHandlerFunc) *Command {
+	c.Handler = handler
+
+	return c
 }
 
-func (scg *SubCommandGroup) AddSubCommands(subcommands ...SubCommandInterface) error {
-	if scg.SubCommands == nil {
-		scg.SubCommands = make(map[string]SubCommandInterface)
-	}
+func (c *Command) WithDefaultPermissions(permissions int64) *Command {
+	c.DefaultPermmissions = &permissions
 
-	for _, s := range subcommands {
-		if _, ok := scg.SubCommands[s.GetName()]; ok {
-			return fmt.Errorf("subcommand already exists: %s", s.GetName())
-		}
-		scg.SubCommands[s.GetName()] = s
-	}
-	return nil
+	return c
 }
 
-func (scg *SubCommandGroup) GetSubCommand(name string) SubCommandInterface {
-	return scg.SubCommands[name]
+func (c *Command) WithDMPermissions(allowed bool) *Command {
+	c.DMPermmission = &allowed
+
+	return c
 }
 
-func (scg *SubCommandGroup) GetSubCommands() []SubCommandInterface {
-	var subCommands []SubCommandInterface
-	for _, subCommand := range scg.SubCommands {
-		subCommands = append(subCommands, subCommand)
-	}
-	return subCommands
-}
+func (c *Command) WithSubCommands(commands ...*Command) *Command {
+	c.Commands.Register(commands...)
 
-func (sc *SubCommand) GetName() string {
-	return sc.Name
-}
-
-func (sc *SubCommand) GetDescription() string {
-	return sc.Description
-}
-
-func (sc *SubCommand) GetHandler() CommandHandlerFunc {
-	return sc.Handler
-}
-
-func (sc *SubCommand) GetOptions() []*CommandOption {
-	return sc.Options
+	return c
 }

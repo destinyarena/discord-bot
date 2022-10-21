@@ -1,13 +1,17 @@
 package commands
 
-import "github.com/destinyarena/discord-bot/pkg/router"
+import (
+	"github.com/destinyarena/discord-bot/internal/commands/profile"
+	"github.com/destinyarena/discord-bot/pkg/router"
+)
 
 func New(r *router.Router) (*router.Router, error) {
-	r.AddCommands(
-		new(ban).Command(),
-		new(unban).Command(),
-		new(timeout).Command(),
-		new(profile).Command(),
+	p := profile.New()
+	r.RegisterCommands(
+		//new(ban).Command(),
+		//new(unban).Command(),
+		//new(timeout).Command(),
+		p.Command(),
 	)
 
 	return r, nil

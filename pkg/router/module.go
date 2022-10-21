@@ -7,7 +7,6 @@ type (
 		Register(ctx *ModuleContext) error
 		Commands() []*Command
 		Components() []*Component
-		Modals() []*Modal
 	}
 
 	Module struct{}

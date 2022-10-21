@@ -29,18 +29,18 @@ func main() {
 		panic(err)
 	}
 
-	session.AddHandler(router.Handler)
+	//session.AddHandler(router.Handler)
 
 	err = session.Open()
 	if err != nil {
 		panic(err)
 	}
 
-	if err := router.Sync(session, ""); err != nil {
+	if err := router.Sync(session); err != nil {
 		panic(err)
 	}
 
-	defer session.Close()
+	//defer session.Close()
 
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, os.Interrupt)

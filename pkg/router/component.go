@@ -9,46 +9,36 @@ import (
 
 type (
 	ComponentHandlerFunc func(ctx *ComponentContext)
-	ComponentContext     struct {
+
+	ComponentContext struct {
 		Context
 		CustomID string
 		Args     map[string]*ComponentArgument
 	}
 
+	ComponentRouter struct {
+		components map[string]*Component
+	}
+
 	ComponentArgumentType int
+	ComponentType         int
 	ComponentArgument     struct {
 		Name  string
 		Value interface{}
 		Type  ComponentArgumentType
 	}
 
-	Component interface {
-		GetType() discordgo.ComponentType
-		Build(args ...interface{}) (discordgo.MessageComponent, error)
+	Component struct {
+		ID      string
+		Type    ComponentType
+		Args    []*ComponentArgument
+		Handler ComponentHandlerFunc
 	}
+)
 
-	ButtonComponent struct {
-		Component
-		ID       string
-		Label    string
-		Style    discordgo.ButtonStyle
-		Emoji    discordgo.ComponentEmoji
-		Disabled bool
-		Args     []*ComponentArgument
-		Handler  ComponentHandlerFunc
-	}
-
-	SelectMenuComponent struct {
-		Component
-		ID          string
-		Placeholder string
-		MinValues   *int
-		MaxValues   int
-		Disabled    bool
-		Options     []discordgo.SelectMenuOption
-		Args        []*ComponentArgument
-		Handler     ComponentHandlerFunc
-	}
+const (
+	ComponentTypeButton ComponentType = iota
+	ComponentTypeSelectMenu
 )
 
 const (
@@ -58,9 +48,33 @@ const (
 	ComponentArgumentTypeRole
 )
 
+func NewComponentRouter(components []*Component) *ComponentRouter {
+	router := &ComponentRouter{
+		components: make(map[string]*Component),
+	}
+
+	return router
+}
+
+func (r *ComponentRouter) Register(components ...*Component) error {
+	for _, component := range components {
+		if _, ok := r.components[component.ID]; ok {
+			return fmt.Errorf("component %s already registered", component.ID)
+		}
+
+		r.components[component.ID] = component
+	}
+
+	return nil
+}
+
+func (r *ComponentRouter) Get(id string) *Component {
+	return r.components[id]
+}
+
 func getIDFromArgs(baseID string, cargs []*ComponentArgument, args []interface{}) (string, error) {
 	if len(args) != len(cargs) {
-		return baseID, errors.New("Invalid number of component arguments")
+		return baseID, errors.New("error: invalid number of component arguments")
 	}
 
 	customID := baseID
@@ -95,36 +109,4 @@ func getIDFromArgs(baseID string, cargs []*ComponentArgument, args []interface{}
 	}
 
 	return customID, nil
-}
-
-func (c *ButtonComponent) Build(args ...interface{}) (discordgo.MessageComponent, error) {
-	id, err := getIDFromArgs(c.ID, c.Args, args)
-	if err != nil {
-		return nil, err
-	}
-
-	return &discordgo.Button{
-		Label:    c.Label,
-		Style:    c.Style,
-		Disabled: c.Disabled,
-		Emoji:    c.Emoji,
-		CustomID: id,
-	}, nil
-
-}
-
-func (c *SelectMenuComponent) Build(args ...interface{}) (discordgo.MessageComponent, error) {
-	id, err := getIDFromArgs(c.ID, c.Args, args)
-	if err != nil {
-		return nil, err
-	}
-
-	return &discordgo.SelectMenu{
-		CustomID:    id,
-		Placeholder: c.Placeholder,
-		MinValues:   c.MinValues,
-		MaxValues:   c.MaxValues,
-		Options:     c.Options,
-		Disabled:    c.Disabled,
-	}, nil
 }
