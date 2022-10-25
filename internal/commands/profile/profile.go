@@ -25,49 +25,83 @@ type (
 )
 
 const (
-	ProfileSummaryID = "profile-summary"
-	ProfileTimeoutID = "profile-timeouts"
-	ProfileBanID     = "profile-bans"
+	ProfileSummaryButtonID = "profile-summary"
+	ProfileTimeoutButtonID = "profile-timeouts"
+	ProfileBanButtonID     = "profile-bans"
+)
+
+var (
+	ProfileSummaryButton discordgo.Button = discordgo.Button{
+		CustomID: ProfileSummaryButtonID,
+		Label:    "Summary",
+		Style:    discordgo.SuccessButton,
+	}
+
+	ProfileTimeoutButton discordgo.Button = discordgo.Button{
+		CustomID: ProfileTimeoutButtonID,
+		Label:    "Timeouts",
+		Style:    discordgo.SecondaryButton,
+	}
+
+	ProfileBanButton discordgo.Button = discordgo.Button{
+		CustomID: ProfileBanButtonID,
+		Label:    "Bans",
+		Style:    discordgo.SecondaryButton,
+	}
 )
 
 func New() *profile {
 	return &profile{}
 }
 
-func (p *profile) Components() []router.Component {
-	return []router.Component{}
-}
-
 func (p *profile) Command() *router.Command {
-	return router.NewCommand("profile", "Get a user profile").WithSubCommands(
-		router.NewCommand("faceit", "Get a user profile with their faceit name").WithHandler(p.faceitHandler).WithOptions(
+	return router.NewCommandBuilder("profile", "Get a user profile").WithSubCommands(
+		router.NewCommandBuilder("faceit", "Get a user profile with their faceit name").WithHandler(p.faceitHandler).WithOptions(
 			&router.CommandOption{
 				Type:        discordgo.ApplicationCommandOptionString,
 				Name:        "username",
 				Description: "The faceit username",
 				Required:    true,
 			},
-		),
-		router.NewCommand("bungie", "Get a user profile with their bungie name").WithHandler(p.bungieHandler).WithOptions(
+		).MustBuild(),
+		router.NewCommandBuilder("bungie", "Get a user profile with their bungie name").WithHandler(p.bungieHandler).WithOptions(
 			&router.CommandOption{
 				Type:        discordgo.ApplicationCommandOptionString,
 				Name:        "id",
 				Description: "The bungie id",
 				Required:    true,
 			},
-		),
-		router.NewCommand("discord", "Get a user profile with their discord name").WithHandler(p.discordHandler).WithOptions(
+		).MustBuild(),
+		router.NewCommandBuilder("discord", "Get a user profile with their discord name").WithHandler(p.discordHandler).WithOptions(
 			&router.CommandOption{
 				Type:        discordgo.ApplicationCommandOptionUser,
 				Name:        "user",
 				Description: "The discord user",
 				Required:    true,
 			},
-		),
-	)
+		).MustBuild(),
+	).MustBuild()
+}
+
+func (p *profile) Components() []*router.Component {
+	return []*router.Component{
+		{
+			Path:    "/profile/summary/:guildid/:userid",
+			Handler: nil,
+		},
+		{
+			Path:    "/profile/history/:guildid/:userid",
+			Handler: nil,
+		},
+		{
+			Path:    "/profile/timeout/:guildid/:userid",
+			Handler: nil,
+		},
+	}
 }
 
 func (p *profile) faceitHandler(ctx *router.CommandContext) {
+
 }
 
 func (p *profile) bungieHandler(ctx *router.CommandContext) {
