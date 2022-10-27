@@ -15,13 +15,15 @@ type (
 	}
 
 	Router struct {
-		commands *CommandRouter
+		commands   *CommandRouter
+		components *ComponentRouter
 	}
 )
 
 func NewRouter() (*Router, error) {
 	r := &Router{
-		commands: NewCommandRouter(nil),
+		commands:   NewCommandRouter(nil),
+		components: NewComponentRouter(nil),
 	}
 
 	return r, nil
@@ -33,6 +35,10 @@ func (r *Router) RegisterCommands(commands ...*Command) error {
 
 func (r *Router) UnregisterCommands(commands ...*Command) {
 	r.commands.Unregister(commands...)
+}
+
+func (r *Router) RegisterComponents(components ...*Component) error {
+	return r.components.Register(components...)
 }
 
 // Handler is registered with discordgo to handle all interaction events
@@ -53,7 +59,7 @@ func (r *Router) Handler(s *discordgo.Session, i *discordgo.InteractionCreate) {
 
 // Sync syncs all commands and subcommands with discord
 func (r *Router) Sync(s *discordgo.Session) error {
-	cmds := make([]*discordgo.ApplicationCommand, 0, len(r.commands.List()))
+	cmds := make([]*discordgo.ApplicationCommand, len(r.commands.List()))
 	for i, c := range r.commands.List() {
 		cmds[i] = c.ApplicationCommand()
 	}
@@ -101,12 +107,7 @@ func (r *Router) handleApplicationCommand(s *discordgo.Session, i *discordgo.Int
 			opts = data.Options[0].Options
 		case discordgo.ApplicationCommandOptionSubCommandGroup:
 			group := cmd.Commands.Get(data.Options[0].Name)
-			if group == nil {
-				fmt.Println("Subcommand not found", data.Options[0].Name)
-				return
-			}
-
-			if group.Commands == nil {
+			if group == nil && group.Commands == nil && len(group.Commands.List()) == 0 {
 				fmt.Println("Subcommand group not found", data.Options[0].Name)
 				return
 			}
@@ -135,6 +136,25 @@ func (r *Router) handleApplicationCommand(s *discordgo.Session, i *discordgo.Int
 }
 
 func (r *Router) handleMessageComponent(s *discordgo.Session, i *discordgo.InteractionCreate) {
+	data := i.MessageComponentData()
+	component := r.components.Get(data.CustomID)
+	if component == nil {
+		fmt.Println("Component not found", data.CustomID)
+		return
+	}
+
+	ctx := &ComponentContext{
+		Context: &Context{
+			Session:     s,
+			Router:      r,
+			Interaction: i.Interaction,
+		},
+		Path:   component.Path,
+		Params: component.Params,
+		Values: data.Values,
+	}
+
+	go component.Handler(ctx)
 }
 
 func (r *Router) handleCommandAutocomplete(s *discordgo.Session, i *discordgo.InteractionCreate) {

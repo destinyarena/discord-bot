@@ -23,24 +23,26 @@ func main() {
 		panic(err)
 	}
 
-	fmt.Println("Adding commands")
+	fmt.Println("Adding commands..")
 
 	if _, err = commands.New(router); err != nil {
 		panic(err)
 	}
 
-	//session.AddHandler(router.Handler)
+	session.AddHandler(router.Handler)
 
 	err = session.Open()
 	if err != nil {
 		panic(err)
 	}
 
+	fmt.Println("Bot is running")
+
 	if err := router.Sync(session); err != nil {
 		panic(err)
 	}
 
-	//defer session.Close()
+	defer session.Close()
 
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, os.Interrupt)

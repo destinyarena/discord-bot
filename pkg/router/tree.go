@@ -76,7 +76,7 @@ func (n *Node) Insert(s string, v interface{}) {
 
 }
 
-func (n *Node) Search(s string) interface{} {
+func (n *Node) Search(s string) (interface{}, map[string]string) {
 	node := n
 
 	params := make(map[string]string)
@@ -96,7 +96,7 @@ func (n *Node) Search(s string) interface{} {
 			}
 
 			if node.Children[idx] == nil {
-				return nil
+				return nil, nil
 			}
 
 			node = node.Children[idx]
@@ -112,8 +112,8 @@ func (n *Node) Search(s string) interface{} {
 	}
 
 	if node.End {
-		return node.Value
+		return node.Value, params
 	}
 
-	return node.Value
+	return nil, nil
 }

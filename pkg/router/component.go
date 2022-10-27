@@ -7,10 +7,16 @@ package router
 type (
 	ComponentHandlerFunc func(ctx *ComponentContext)
 
-	ComponentContext struct{}
+	ComponentContext struct {
+		*Context
+		Path   string
+		Params map[string]string
+		Values []string
+	}
 
 	Component struct {
 		Path    string
+		Params  map[string]string
 		Handler ComponentHandlerFunc
 	}
 
@@ -39,11 +45,17 @@ func (r *ComponentRouter) Register(components ...*Component) error {
 	return nil
 }
 
-func (r *ComponentRouter) Get(path string) ComponentHandlerFunc {
-	v := r.components.Search(path)
+func (r *ComponentRouter) Get(path string) *Component {
+	v, params := r.components.Search(path)
 	if v == nil {
 		return nil
 	}
 
-	return v.(ComponentHandlerFunc)
+	handler := v.(ComponentHandlerFunc)
+
+	return &Component{
+		Path:    path,
+		Params:  params,
+		Handler: handler,
+	}
 }

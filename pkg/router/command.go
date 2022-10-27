@@ -1,6 +1,8 @@
 package router
 
 import (
+	"fmt"
+
 	"github.com/bwmarrin/discordgo"
 )
 
@@ -46,6 +48,8 @@ func (r *CommandRouter) Register(commands ...*Command) error {
 			return &CommandAlreadyRegisteredError{command.Name}
 		}
 
+		fmt.Println("Registering command", command.Name)
+
 		r.commands[command.Name] = command
 	}
 
@@ -77,7 +81,7 @@ func (r *CommandRouter) List() []*Command {
 }
 
 func (c *Command) applicationCommandOptions() []*discordgo.ApplicationCommandOption {
-	if c.Commands == nil {
+	if c.Commands != nil && len(c.Commands.List()) == 0 {
 		options := make([]*discordgo.ApplicationCommandOption, len(c.Options))
 		for i, option := range c.Options {
 			options[i] = (*discordgo.ApplicationCommandOption)(option)
@@ -90,7 +94,7 @@ func (c *Command) applicationCommandOptions() []*discordgo.ApplicationCommandOpt
 
 	for i, command := range c.Commands.List() {
 		oType := discordgo.ApplicationCommandOptionSubCommand
-		if command.Commands != nil {
+		if command.Commands != nil && len(command.Commands.List()) > 0 {
 			oType = discordgo.ApplicationCommandOptionSubCommandGroup
 		}
 

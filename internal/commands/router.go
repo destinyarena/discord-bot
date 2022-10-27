@@ -14,5 +14,9 @@ func New(r *router.Router) (*router.Router, error) {
 		p.Command(),
 	)
 
+	r.RegisterComponents(
+		p.Components()...,
+	)
+
 	return r, nil
 }
