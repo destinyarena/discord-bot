@@ -63,11 +63,11 @@ func (n *Node) Insert(s string, v interface{}) {
 
 			node = node.Children[idx]
 			continue
-		} else {
-			// If we have a param character, we need to add it to the param string
-			node.Param += string(c)
-			node.hasParam = true
 		}
+
+		// If we have a param character, we need to add it to the param string
+		node.Param += string(c)
+		node.hasParam = true
 
 	}
 
@@ -103,11 +103,12 @@ func (n *Node) Search(s string) (interface{}, map[string]string) {
 			if node.Children[37] != nil {
 				node = node.Children[37]
 			}
-		} else {
-			// If we have a param character, we need to add it to the param string
-			params[node.Param] += string(c)
 
+			continue
 		}
+
+		// If we have a param character, we need to add it to the param string
+		params[node.Param] += string(c)
 
 	}
 
