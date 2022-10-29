@@ -1,9 +1,5 @@
 package router
 
-/*
-\/button\/name\/(?<number>[A-z0-9]+)\/(?<fsadfasdf>[A-z0-9]+)
-*/
-
 type (
 	ComponentHandlerFunc func(ctx *ComponentContext)
 

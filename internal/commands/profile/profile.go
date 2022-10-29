@@ -3,14 +3,15 @@ package profile
 import (
 	"fmt"
 
+	"github.com/arturoguerra/faceitgo"
 	"github.com/bwmarrin/discordgo"
-	"github.com/destinyarena/discord-bot/internal/utils"
 	"github.com/destinyarena/discord-bot/pkg/router"
 )
 
 // add buttons
 type (
 	profile struct {
+		Faceit *faceitgo.RESTClient
 	}
 
 	userprofile struct {
@@ -33,50 +34,44 @@ const (
 	SuccessEmbedColor   = 0xF30707
 )
 
-func New() *profile {
-	return &profile{}
+func New(f *faceitgo.RESTClient) *profile {
+	return &profile{f}
 }
 
 func (p *profile) Command() *router.Command {
-	return router.NewCommandBuilder("profile2", "Get a user profile").WithSubCommands(
-		router.NewCommandBuilder("faceit", "Get a user profile").WithHandler(p.faceitHandler).WithOptions(
-			&router.CommandOption{
-				Type:        discordgo.ApplicationCommandOptionString,
-				Name:        "username",
-				Description: "The faceit username",
-				Required:    true,
-			},
-		).MustBuild(),
-		router.NewCommandBuilder("bungie", "Get a user profile").WithHandler(p.bungieHandler).WithOptions(
-			&router.CommandOption{
-				Type:        discordgo.ApplicationCommandOptionString,
-				Name:        "id",
-				Description: "The bungie id",
-				Required:    true,
-			},
-		).MustBuild(),
-		router.NewCommandBuilder("discord", "Get a user profile").WithHandler(p.discordHandler).WithOptions(
-			&router.CommandOption{
-				Type:        discordgo.ApplicationCommandOptionUser,
-				Name:        "user",
-				Description: "The discord user",
-				Required:    true,
-			},
-		).MustBuild(),
-	).WithDefaultPermissions(discordgo.PermissionManageServer).MustBuild()
+	return router.NewCommandBuilder("profile", "Get a user profile").
+		WithSubCommands(
+			router.NewCommandBuilder("faceit", "Get a user profile").WithHandler(p.faceitHandler).WithOptions(
+				&router.CommandOption{
+					Type:        discordgo.ApplicationCommandOptionString,
+					Name:        "username",
+					Description: "The faceit username",
+					Required:    true,
+				},
+			).MustBuild(),
+			router.NewCommandBuilder("bungie", "Get a user profile").WithHandler(p.bungieHandler).WithOptions(
+				&router.CommandOption{
+					Type:        discordgo.ApplicationCommandOptionString,
+					Name:        "id",
+					Description: "The bungie id",
+					Required:    true,
+				},
+			).MustBuild(),
+			router.NewCommandBuilder("discord", "Get a user profile").WithHandler(p.discordHandler).WithOptions(
+				&router.CommandOption{
+					Type:        discordgo.ApplicationCommandOptionUser,
+					Name:        "user",
+					Description: "The discord user",
+					Required:    true,
+				},
+			).MustBuild(),
+		).
+		WithDefaultPermissions(discordgo.PermissionManageServer).
+		MustBuild()
 }
 
 func (p *profile) Components() []*router.Component {
-	return []*router.Component{
-		{
-			Path:    fmt.Sprintf(HistoryButtonID, ":guildid", ":userid"),
-			Handler: p.historyHandler,
-		},
-		//		{
-		//			Path:    fmt.Sprintf(ProfileHistoryButtonPageID, ":guildid", ":userid", ":page"),
-		//			Handler: p.historyPageHandler,
-		//		},
-	}
+	return []*router.Component{}
 }
 
 func (p *profile) bungieHandler(ctx *router.CommandContext) {
@@ -125,21 +120,36 @@ func (p *profile) discordHandler(ctx *router.CommandContext) {
 
 func (p *profile) faceitHandler(ctx *router.CommandContext) {
 	faceituser := ctx.Options["username"].StringValue()
+	fmt.Println("Getting user ", faceituser)
+
+	user, err := p.Faceit.GetPlayer(faceituser, "", "")
+	if err != nil {
+		fmt.Println("Error getting player", err)
+		return
+	}
+
+	fmt.Println("Got user ", user)
+
+	level := 0
+
+	if game, ok := user.Games["destiny2"]; ok {
+		level = game.SkillLevel
+	}
 
 	u := &userprofile{
 		DiscordID:            "123456789",
 		DiscordUsername:      "Destiny",
 		DiscordDiscriminator: "0001",
-		FaceitID:             "123456789",
-		FaceitUsername:       faceituser,
-		FaceitLevel:          10,
+		FaceitID:             user.PlayerID,
+		FaceitUsername:       user.Nickname,
+		FaceitLevel:          level,
 		BungieUsername:       "Destiny",
 		BungieID:             "123456789",
 		Banned:               false,
 	}
 
-	embed, profileButtons := p.buildSummary(u, ctx.Context)
-	ctx.Reply("", []*discordgo.MessageEmbed{embed}, profileButtons)
+	embed, buttons := p.buildSummary(u, ctx.Context)
+	ctx.Reply("", []*discordgo.MessageEmbed{embed}, buttons)
 }
 
 func (p *profile) buildSummary(u *userprofile, ctx *router.Context) (*discordgo.MessageEmbed, []discordgo.MessageComponent) {
@@ -195,58 +205,5 @@ func (p *profile) buildSummary(u *userprofile, ctx *router.Context) (*discordgo.
 		})
 	}
 
-	historyButton := utils.NewButton(fmt.Sprintf(HistoryButtonID, ctx.Interaction.GuildID, u.DiscordID), "History", discordgo.SuccessButton)
-
-	profileButtons := []discordgo.MessageComponent{
-		discordgo.ActionsRow{
-			Components: []discordgo.MessageComponent{
-				historyButton,
-			},
-		},
-	}
-
-	return embed, profileButtons
-}
-
-func (p *profile) historyHandler(ctx *router.ComponentContext) {
-	fmt.Println("Timeouts")
-	userid := ctx.Params["userid"]
-
-	user, _ := ctx.Session.User(userid)
-
-	//	profileButtons := []discordgo.MessageComponent{
-	//		discordgo.ActionsRow{
-	//			Components: []discordgo.MessageComponent{
-	//
-	//			},
-	//		},
-	//	}
-
-	embed := &discordgo.MessageEmbed{
-		Title:       "Profile Timeouts",
-		Color:       SuccessEmbedColor,
-		Description: fmt.Sprintf("Here are the timeouts for %s#%s", user.Username, user.Discriminator),
-		Thumbnail: &discordgo.MessageEmbedThumbnail{
-			URL: user.AvatarURL(""),
-		},
-		Fields: []*discordgo.MessageEmbedField{
-			{
-				Name:  "ID: 454524",
-				Value: "**Time** 4h\n**Reason** Spamming\n**Moderator** <@arturo>\n**Date** 2021-05-01 12:00:00",
-			},
-			{
-				Name:  "ID: 454524",
-				Value: "**Time** 4h\n**Reason** Spamming\n**Moderator** <@arturo>\n**Date** 2021-05-01 12:00:00",
-			},
-			{
-				Name:  "ID: 454524",
-				Value: "**Time** 4h\n**Reason** Spamming\n**Moderator** <@arturo>\n**Date** 2021-05-01 12:00:00",
-			},
-		},
-	}
-
-	err := ctx.Reply("", []*discordgo.MessageEmbed{embed}, nil)
-	if err != nil {
-		fmt.Println(err)
-	}
+	return embed, nil
 }

@@ -1,3 +1,5 @@
+github.com/arturoguerra/faceitgo v0.0.0-20221028232215-f325d05b7cc9 h1:oEkojpgBf935XW/2fKbsV1hyN52kT7cRyEcpYe52/9E=
+github.com/arturoguerra/faceitgo v0.0.0-20221028232215-f325d05b7cc9/go.mod h1:lYyHr+1fmmtilIkqqnPVdZ2R5EkYMQv6XWkv5Ejzv+8=
 github.com/bwmarrin/discordgo v0.26.1 h1:AIrM+g3cl+iYBr4yBxCBp9tD9jR3K7upEjl0d89FRkE=
 github.com/bwmarrin/discordgo v0.26.1/go.mod h1:NJZpH+1AfhIcyQsPeuBKsUtYrRnjkyu0kIVMCHkZtRY=
 github.com/gorilla/websocket v1.4.2 h1:+/TMaTYc4QFitKJxsQ7Yye35DkWvkdLcvGKqM+x0Ufc=
