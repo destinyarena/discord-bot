@@ -2,87 +2,74 @@ package router
 
 import "fmt"
 
-type (
-	ModalExistsError struct {
-		ModalName string
-	}
+type commandErrorWrapper struct {
+	message string
+	name    string
+	err     error
+}
 
-	ModalInvalidArgumentError struct {
-		ModalName string
-		Err       error
-	}
+func (e *commandErrorWrapper) Error() string {
+	return fmt.Sprintf("%s: %s", e.message, e.name)
+}
 
-	ModalNotFoundError struct {
-		ModalName string
-	}
+func (e *commandErrorWrapper) Unwrap() error {
+	return e.err
+}
 
-	ComponentExistsError struct {
-		ComponentName string
-	}
+func newCommandErrorWrapper(message, name string, err error) *commandErrorWrapper {
+	return &commandErrorWrapper{message, name, err}
+}
 
-	ComponentInvalidArgumentError struct {
-		ComponentName string
-		Err           error
-	}
-
-	ComponentNotFoundError struct {
-		ComponentName string
-	}
-
-	CommandAlreadyRegisteredError struct {
-		CommandName string
-	}
-
-	CommandNotFoundError struct {
-		CommandName string
-	}
-
-	CommandExitError struct {
-		CommandName string
-		Err         error
-	}
-
-	ErrSubCommandGroupAlreadyExists struct {
-		GroupName string
-	}
+var (
+	ErrCommandAlreadyRegistered = newCommandErrorWrapper("command already registered", "ErrCommandAlreadyRegistered", nil) // Command already registered
+	ErrCommandNotFound          = newCommandErrorWrapper("command not found", "ErrCommandNotFound", nil)                   // Command not found
+	ErrCommandHandlerNotFound   = newCommandErrorWrapper("command handler not found", "ErrCommandHandlerNotFound", nil)    // Command handler not found
 )
 
-func (e *ErrSubCommandGroupAlreadyExists) Error() string {
-	return fmt.Sprintf("subcommand group %s already exists", e.GroupName)
+func NewErrCommandAlreadyRegistered(name string) *commandErrorWrapper {
+	err := ErrCommandAlreadyRegistered
+	err.name = name
+	return err
 }
 
-func (e *ModalExistsError) Error() string {
-	return fmt.Sprintf("Modal already exists: %s\n", e.ModalName)
+func NewErrCommandNotFound(name string) *commandErrorWrapper {
+	err := ErrCommandNotFound
+	err.name = name
+	return err
 }
 
-func (e *ModalInvalidArgumentError) Error() string {
-	return fmt.Sprintf("Modal %s has invalid arguments: %s\n", e.ModalName, e.Err.Error())
+func NewErrCommandHandlerNotFound(name string) *commandErrorWrapper {
+	err := ErrCommandHandlerNotFound
+	err.name = name
+	return err
 }
 
-func (e *ModalNotFoundError) Error() string {
-	return fmt.Sprintf("Modal not found: %s\n", e.ModalName)
+type componentErrorWrapper struct {
+	err  string
+	path string
 }
 
-func (e *ComponentExistsError) Error() string {
-	return fmt.Sprintf("Component already exists: %s\n", e.ComponentName)
+func (e *componentErrorWrapper) Error() string {
+	return fmt.Sprintf("%s: %s", e.err, e.path)
 }
 
-func (e *ComponentInvalidArgumentError) Error() string {
-	return fmt.Sprintf("Component %s has invalid arguments: %s\n", e.ComponentName, e.Err.Error())
+func newComponentErrorWrapper(err, path string) componentErrorWrapper {
+	return componentErrorWrapper{err, path}
 }
 
-func (e *ComponentNotFoundError) Error() string {
-	return fmt.Sprintf("Component not found: %s\n", e.ComponentName)
+var (
+	ErrComponentNotFound        = newComponentErrorWrapper("component not found", "ErrComponentNotFound")                // Component not found
+	ErrComponentHandlerNotFound = newComponentErrorWrapper("component handler not found", "ErrComponentHandlerNotFound") // Component handler not found
+)
+
+func NewErrComponentNotFound(path string) *componentErrorWrapper {
+	err := ErrComponentNotFound
+	err.path = path
+	return &err
 }
 
-func (e *CommandAlreadyRegisteredError) Error() string {
-	return fmt.Sprintf("Command already exists: %s\n", e.CommandName)
-}
-
-func (e *CommandNotFoundError) Error() string {
-	return fmt.Sprintf("Command not found: %s\n", e.CommandName)
-}
-
-func (e *CommandExitError) Error() string {
-	return fmt.Sprintf("Command %s exited with error: %s\n", e.CommandName, e.Err.Error())
+func NewErrComponentHandlerNotFound(path string) *componentErrorWrapper {
+	err := ErrComponentHandlerNotFound
+	err.path = path
+	return &err
 }

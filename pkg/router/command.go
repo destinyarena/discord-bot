@@ -45,7 +45,7 @@ func NewCommandRouter(commands []*Command) *CommandRouter {
 func (r *CommandRouter) Register(commands ...*Command) error {
 	for _, command := range commands {
 		if _, ok := r.commands[command.Name]; ok {
-			return &CommandAlreadyRegisteredError{command.Name}
+			return NewErrCommandAlreadyRegistered(command.Name)
 		}
 
 		fmt.Println("Registering command", command.Name)
@@ -56,8 +56,14 @@ func (r *CommandRouter) Register(commands ...*Command) error {
 	return nil
 }
 
-func (r *CommandRouter) Get(name string) *Command {
-	return r.commands[name]
+func (r *CommandRouter) Get(name string) (*Command, error) {
+	cmd, ok := r.commands[name]
+	if !ok {
+		return nil, NewErrCommandNotFound(name)
+	}
+
+	return cmd, nil
+
 }
 
 func (r *CommandRouter) Unregister(commands ...*Command) error {

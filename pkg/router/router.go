@@ -66,7 +66,7 @@ func (r *Router) Sync(s *discordgo.Session) error {
 
 	appcmds, err := s.ApplicationCommandBulkOverwrite(s.State.User.ID, "", cmds)
 	if err != nil {
-		return err
+		return fmt.Errorf("error syncing commands: %w", err)
 	}
 
 	for _, c := range appcmds {
@@ -85,9 +85,9 @@ func (r *Router) handlePing(s *discordgo.Session, i *discordgo.InteractionCreate
 
 func (r *Router) handleApplicationCommand(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	data := i.ApplicationCommandData()
-	cmd := r.commands.Get(data.Name)
-	if cmd == nil {
-		fmt.Println("Command not found", data.Name)
+	cmd, err := r.commands.Get(data.Name)
+	if err != nil {
+		fmt.Println("Error Getting Command: %w", err)
 		return
 	}
 
@@ -97,24 +97,24 @@ func (r *Router) handleApplicationCommand(s *discordgo.Session, i *discordgo.Int
 	if len(data.Options) > 0 {
 		switch data.Options[0].Type {
 		case discordgo.ApplicationCommandOptionSubCommand:
-			subcmd := cmd.Commands.Get(data.Options[0].Name)
-			if subcmd == nil {
-				fmt.Println("Subcommand not found", data.Options[0].Name)
+			subcmd, err := cmd.Commands.Get(data.Options[0].Name)
+			if err != nil {
+				fmt.Println("Error Getting SubCommand: %w", err)
 				return
 			}
 
 			handler = subcmd.Handler
 			opts = data.Options[0].Options
 		case discordgo.ApplicationCommandOptionSubCommandGroup:
-			group := cmd.Commands.Get(data.Options[0].Name)
-			if group == nil && group.Commands == nil && len(group.Commands.List()) == 0 {
-				fmt.Println("Subcommand group not found", data.Options[0].Name)
+			group, err := cmd.Commands.Get(data.Options[0].Name)
+			if err != nil {
+				fmt.Println("Error Getting SubCommandGroup: %w", err)
 				return
 			}
 
-			subcmd := group.Commands.Get(data.Options[0].Options[0].Name)
-			if subcmd == nil {
-				fmt.Println("Subcommand not found", data.Options[0].Options[0].Name)
+			subcmd, err := group.Commands.Get(data.Options[0].Options[0].Name)
+			if err != nil {
+				fmt.Println("Error Getting SubCommand: %w", err)
 				return
 			}
 
@@ -137,9 +137,9 @@ func (r *Router) handleApplicationCommand(s *discordgo.Session, i *discordgo.Int
 
 func (r *Router) handleMessageComponent(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	data := i.MessageComponentData()
-	component := r.components.Get(data.CustomID)
-	if component == nil {
-		fmt.Println("Component not found", data.CustomID)
+	component, err := r.components.Get(data.CustomID)
+	if err != nil {
+		fmt.Println("Error Getting Component: %w", err)
 		return
 	}
 
