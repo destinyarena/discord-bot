@@ -7,13 +7,6 @@ import (
 )
 
 type (
-	MetaRouter interface {
-		Register(commands ...*Command) error
-		Unregister(commands ...*Command)
-		Handler(s *discordgo.Session, i *discordgo.InteractionCreate)
-		Sync(s *discordgo.Session, guildid string) error
-	}
-
 	Router struct {
 		commands   *CommandRouter
 		components *ComponentRouter
