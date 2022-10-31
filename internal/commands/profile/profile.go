@@ -5,13 +5,15 @@ import (
 
 	"github.com/arturoguerra/faceitgo"
 	"github.com/bwmarrin/discordgo"
+	"github.com/destinyarena/discord-bot/internal/profiles"
 	"github.com/destinyarena/discord-bot/pkg/router"
 )
 
 // add buttons
 type (
 	profile struct {
-		Faceit *faceitgo.RESTClient
+		Faceit   *faceitgo.RESTClient
+		Profiles profiles.Profiles
 	}
 
 	userprofile struct {
@@ -34,8 +36,8 @@ const (
 	SuccessEmbedColor   = 0xF30707
 )
 
-func New(f *faceitgo.RESTClient) *profile {
-	return &profile{f}
+func New(faceit *faceitgo.RESTClient, profiles profiles.Profiles) *profile {
+	return &profile{faceit, profiles}
 }
 
 func (p *profile) Command() *router.Command {

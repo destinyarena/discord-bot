@@ -5,11 +5,12 @@ import (
 	"github.com/destinyarena/discord-bot/internal/commands/ban"
 	"github.com/destinyarena/discord-bot/internal/commands/profile"
 	"github.com/destinyarena/discord-bot/internal/commands/unban"
+	"github.com/destinyarena/discord-bot/internal/profiles"
 	"github.com/destinyarena/discord-bot/pkg/router"
 )
 
-func New(r *router.Router, faceit *faceitgo.RESTClient) (*router.Router, error) {
-	profile := profile.New(faceit)
+func New(r *router.Router, faceit *faceitgo.RESTClient, profiles profiles.Profiles) (*router.Router, error) {
+	profile := profile.New(faceit, profiles)
 	unban := unban.New()
 	ban := ban.New()
 
